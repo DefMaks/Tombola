@@ -338,7 +338,7 @@ export default function InfoPage() {
                       </label>
                       <Input
                         type="email"
-                        placeholder="exemple@defmaks.com"
+                        placeholder="exemple@mail.com"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                         required
