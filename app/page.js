@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Ticket, Flame, Clock, ChevronRight, ChevronLeft, Sparkles, Trophy, Star, ArrowRight, Quote, ExternalLink } from 'lucide-react';
+import { Ticket, Flame, Clock, ChevronRight, ChevronLeft, Sparkles, Trophy, Star, ArrowRight, Quote, ExternalLink, MapPin, Building2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import InstallPWABanner from '@/components/InstallPWABanner';
 import AdBlock from '@/components/AdBlock';
 import PalierFireBadges from '@/components/PalierFireBadges';
 import AppLoadingScreen from '@/components/AppLoadingScreen';
+import CommuneNoticeBanner from '@/components/CommuneNoticeBanner';
 import { cn } from '@/lib/utils';
 
 const TYPE_STYLE = {
@@ -104,8 +105,14 @@ function RaffleCard({ raffle, index }) {
               <img src={raffle.hero_image_url} alt={raffle.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute top-2 left-2 flex gap-1.5">
+            <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap max-w-[85%]">
               <Badge variant="outline" className={cn('backdrop-blur-md text-[10px] font-semibold', t.className)}>{t.label}</Badge>
+              {raffle.scope_type === 'COMMUNE' && raffle.target_commune && (
+                <Badge className="bg-emerald-500/80 hover:bg-emerald-500 text-white border-emerald-400/40 backdrop-blur-md text-[9px] font-bold flex items-center gap-0.5 shadow-sm">
+                  <MapPin className="h-2.5 w-2.5" />
+                  {raffle.target_commune}
+                </Badge>
+              )}
               {soldPct >= 70 && !isCompleted && <Badge variant="outline" className="bg-rose-500/20 text-rose-300 border-rose-500/40 backdrop-blur-md text-[10px]"><Flame className="h-3 w-3 mr-0.5" />HOT</Badge>}
               {isCompleted && <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/40 backdrop-blur-md text-[10px]">🏆 Terminé</Badge>}
             </div>
@@ -323,8 +330,15 @@ function PerspectiveRaffleCarousel({ raffles }) {
                     : "border-border shadow-md opacity-90 hover:opacity-100"
                 )}>
                   {/* Badge Gauche: Mis en avant */}
-                  <div className="absolute top-3 left-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 text-[10px] font-black uppercase shadow-sm">
-                    <Star className="h-3 w-3 fill-current" /> Mis en avant
+                  <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 text-[10px] font-black uppercase shadow-sm">
+                      <Star className="h-3 w-3 fill-current" /> Mis en avant
+                    </div>
+                    {raffle.scope_type === 'COMMUNE' && raffle.target_commune && (
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/90 text-white text-[10px] font-black shadow-sm backdrop-blur-md border border-emerald-300/40">
+                        <MapPin className="h-3 w-3" /> {raffle.target_commune}
+                      </div>
+                    )}
                   </div>
 
                   {/* Badge Droite: Nature de la Tombola */}
@@ -412,7 +426,21 @@ function PerspectiveRaffleCarousel({ raffles }) {
 export default function HomePage() {
   const [category, setCategory] = useState(null);
   const [typeFilter, setTypeFilter] = useState('ALL');
+  const [scopeFilter, setScopeFilter] = useState('ALL'); // ALL, CITY, COMMUNE
   const [selectedTestimonial, setSelectedTestimonial] = useState(null);
+  const [savedPhone, setSavedPhone] = useState('');
+
+  useEffect(() => {
+    const p = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
+    if (p) setSavedPhone(p);
+  }, []);
+
+  // Fetch logged in user profile (for commune info & locking)
+  const { data: userProfile, refetch: refetchProfile } = useQuery({
+    queryKey: ['profile-data', savedPhone],
+    queryFn: () => fetch(`/api/my/profile?phone=${encodeURIComponent(savedPhone)}`).then(r => r.json()),
+    enabled: !!savedPhone,
+  });
 
   // Categories API Fetch & Parsing
   const { data: categoriesData } = useQuery({
@@ -423,10 +451,17 @@ export default function HomePage() {
     ? categoriesData
     : (categoriesData?.categories || categoriesData?.data || []);
 
-  // Raffles API Fetch & Parsing (Strictly ACTIVE status)
+  // Raffles API Fetch & Parsing (Strictly ACTIVE status + Territorial scope filtering)
+  const userCommune = userProfile?.commune || '';
   const { data: rafflesData, isLoading } = useQuery({
-    queryKey: ['raffles', category],
-    queryFn: () => fetch(`/api/raffles?status=ACTIVE${category ? '&category=' + category : ''}`).then(r => r.json()),
+    queryKey: ['raffles', category, userCommune],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set('status', 'ACTIVE');
+      if (category) params.set('category', category);
+      if (userCommune) params.set('commune', userCommune);
+      return fetch(`/api/raffles?${params.toString()}`).then(r => r.json());
+    },
     refetchInterval: 15_000,
   });
   const raffleList = Array.isArray(rafflesData)
@@ -500,8 +535,10 @@ export default function HomePage() {
   const ad = adsList.length > 0 ? adsList[0] : null;
 
   const filteredActiveRaffles = activeRaffles.filter(r => {
-    if (typeFilter === 'ALL') return true;
-    return r.type === typeFilter;
+    if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
+    if (scopeFilter === 'CITY' && r.scope_type !== 'CITY') return false;
+    if (scopeFilter === 'COMMUNE' && r.scope_type !== 'COMMUNE') return false;
+    return true;
   });
 
   const frequencyTabs = [
@@ -525,21 +562,33 @@ export default function HomePage() {
               alt="Punchy Emblem"
               className="h-9 w-9 object-contain drop-shadow transition-transform group-hover:scale-105"
             />
-            {/**
-            <img
-              src="/Punchy-logo-b.png"
-              alt="PUNCHY"
-              className="h-6 object-contain max-w-[120px]"
-            />
-             */}
           </Link>
-          {/** 
-          <Link href="/my-tickets" prefetch={true} className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors">
-            <Ticket className="h-5 w-5 text-amber-500" />
-          </Link>
-          */}
+
+          {userProfile?.commune ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+              <MapPin className="h-3 w-3" />
+              <span>{userProfile.commune}</span>
+            </div>
+          ) : savedPhone ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+              <MapPin className="h-3 w-3" />
+              <span>Kinshasa</span>
+            </div>
+          ) : null}
         </div>
       </header>
+
+      {/* Commune notice banner for existing & logged in users */}
+      {/** 
+      <div className="px-4 pt-3">
+        <CommuneNoticeBanner
+          userPhone={savedPhone}
+          commune={userProfile?.commune}
+          lockedUntil={userProfile?.commune_locked_until}
+          onCommuneUpdated={() => refetchProfile()}
+        />
+      </div>
+      */}
 
       {/* Ad block (dynamic multi-source carousel from Supabase & Neon) */}
       <AdBlock zone="home" sources={["SPB", "NDB"]} />
@@ -563,6 +612,45 @@ export default function HomePage() {
           <h2 className="font-bold text-lg">🔥 Tombolas en cours</h2>
           <span className="text-xs text-muted-foreground">{filteredActiveRaffles.length} en cours</span>
         </div>
+
+        {/* Territorial Scope Filter (If commune is set or if there are commune raffles) */}
+        {userProfile?.commune && (
+          <div className="flex items-center gap-1.5 mb-3 bg-secondary/30 p-1 rounded-2xl border border-border/60">
+            <button
+              onClick={() => setScopeFilter('ALL')}
+              className={cn(
+                'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center',
+                scopeFilter === 'ALL'
+                  ? 'bg-amber-500 text-slate-950 shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              Toutes ({activeRaffles.length})
+            </button>
+            <button
+              onClick={() => setScopeFilter('CITY')}
+              className={cn(
+                'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
+                scopeFilter === 'CITY'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Building2 className="h-3 w-3" /> Ville ({activeRaffles.filter(r => r.scope_type === 'CITY').length})
+            </button>
+            <button
+              onClick={() => setScopeFilter('COMMUNE')}
+              className={cn(
+                'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
+                scopeFilter === 'COMMUNE'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <MapPin className="h-3 w-3" /> {userProfile.commune} ({activeRaffles.filter(r => r.scope_type === 'COMMUNE').length})
+            </button>
+          </div>
+        )}
 
         {/* Frequency Filter Tabs */}
         <div className="flex gap-2 overflow-x-auto scrollbar-none pb-3 -mx-4 px-4">

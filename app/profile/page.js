@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Trophy, LogOut, MessageSquarePlus, Camera, Loader2, CheckCircle2, Clock, ShieldCheck, Ticket, Receipt, Edit3, KeyRound, Sparkles, ArrowRight, Eye, EyeOff, Info } from 'lucide-react';
+import { User, Phone, Trophy, LogOut, MessageSquarePlus, Camera, Loader2, CheckCircle2, Clock, ShieldCheck, Ticket, Receipt, Edit3, KeyRound, Sparkles, ArrowRight, Eye, EyeOff, Info, MapPin, Building2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +13,9 @@ import BottomNav from '@/components/BottomNav';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import PhoneAuthModal from '@/components/PhoneAuthModal';
+import CommuneSelectModal from '@/components/CommuneSelectModal';
+import CommuneNoticeBanner from '@/components/CommuneNoticeBanner';
+import { KINSHASA_COMMUNES } from '@/lib/constants/communes';
 import { formatDRCPhone, signInWithPassword, sendPhoneOtp, signInWithPhoneOtp } from '@/lib/auth/actions';
 
 const UPLOADCARE_PUB_KEY = process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || '46beee9be2df550b8604';
@@ -36,6 +39,7 @@ export default function ProfilePage() {
   const [otpCode, setOtpCode] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isCommuneModalOpen, setIsCommuneModalOpen] = useState(false);
   const [fullNameInput, setFullNameInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
@@ -261,6 +265,58 @@ export default function ProfilePage() {
         </motion.div>
       </div>
 
+      {/* Commune Notice & Territorial Information */}
+      <div className="px-4 pt-4">
+        {userProfile?.commune ? (
+          <div className="p-4 rounded-3xl bg-card border border-emerald-500/30 shadow-md space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                    Commune de Résidence
+                  </div>
+                  <div className="text-base font-black text-foreground flex items-center gap-1.5">
+                    <span>{userProfile.commune}</span>
+                    <span className="text-xs font-normal text-muted-foreground">(Kinshasa 🇨🇩)</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsCommuneModalOpen(true)}
+                className="text-xs font-bold text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-colors"
+              >
+                Gérer
+              </button>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-secondary/40 border border-border text-xs flex items-center justify-between">
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>Règle anti-opportunisme :</span>
+              </span>
+              {userProfile?.commune_locked_until && new Date(userProfile.commune_locked_until).getTime() > Date.now() ? (
+                <span className="font-bold text-amber-400 flex items-center gap-1">
+                  <Lock className="h-3 w-3" /> Verrouillé jusqu&apos;au {new Date(userProfile.commune_locked_until).toLocaleDateString('fr-FR')}
+                </span>
+              ) : (
+                <span className="font-bold text-emerald-400">Modifiable</span>
+              )}
+            </div>
+          </div>
+        ) : (
+          <CommuneNoticeBanner
+            userPhone={savedPhone}
+            commune={userProfile?.commune}
+            lockedUntil={userProfile?.commune_locked_until}
+            onCommuneUpdated={() => refetchProfile()}
+          />
+        )}
+      </div>
+
       {/* Quick links & History */}
       <section className="px-4 pt-6 space-y-2">
         <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider mb-2">Raccourcis & Securité</h3>
@@ -409,6 +465,16 @@ export default function ProfilePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Commune Selection Modal */}
+      <CommuneSelectModal
+        open={isCommuneModalOpen}
+        onOpenChange={setIsCommuneModalOpen}
+        currentCommune={userProfile?.commune}
+        lockedUntil={userProfile?.commune_locked_until}
+        phone={savedPhone}
+        onSuccess={() => refetchProfile()}
+      />
 
       <BottomNav />
     </main>

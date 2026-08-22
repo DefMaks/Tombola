@@ -1,0 +1,27 @@
+export const KINSHASA_COMMUNES = [
+  'Bandalungwa',
+  'Barumbu',
+  'Bumbu',
+  'Gombe',
+  'Kalamu',
+  'Kasa-Vubu',
+  'Kimbanseke',
+  'Kinshasa',
+  'Kisenso',
+  'Lemba',
+  'Limete',
+  'Lingwala',
+  'Makala',
+  'Maluku',
+  'Masina',
+  'Matete',
+  'Mont-Ngafula',
+  'Ndjili',
+  'Ngaba',
+  'Ngaliema',
+  'Ngiri-Ngiri',
+  'Nsele',
+  'Selembao',
+] as const;
+
+export type KinshasaCommune = (typeof KINSHASA_COMMUNES)[number];

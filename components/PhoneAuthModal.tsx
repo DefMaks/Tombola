@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, ShieldCheck, KeyRound, Loader2, ArrowRight, RefreshCw, CheckCircle2, User, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Phone, ShieldCheck, KeyRound, Loader2, ArrowRight, RefreshCw, CheckCircle2, User, Lock, Eye, EyeOff, Sparkles, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { formatDRCPhone, sendPhoneOtp, signInWithPhoneOtp, signInWithPassword } from '@/lib/auth/actions';
+import { KINSHASA_COMMUNES } from '@/lib/constants/communes';
 
 interface PhoneAuthModalProps {
   open: boolean;
@@ -32,6 +33,7 @@ export default function PhoneAuthModal({
 
   const [phoneDigits, setPhoneDigits] = useState('');
   const [fullName, setFullName] = useState('');
+  const [commune, setCommune] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,6 +49,7 @@ export default function PhoneAuthModal({
       setSignupStep('details');
       setResetStep('request');
       setOtpCode('');
+      setCommune('');
       setPassword('');
       setNewPassword('');
     }
@@ -105,6 +108,10 @@ export default function PhoneAuthModal({
       toast.error('Veuillez entrer un numéro RDC valide (ex: 0820000000)');
       return;
     }
+    if (!commune) {
+      toast.error('Veuillez sélectionner votre commune de résidence à Kinshasa');
+      return;
+    }
     if (!password || password.length < 6) {
       toast.error('Le mot de passe doit contenir au moins 6 caractères');
       return;
@@ -136,8 +143,8 @@ export default function PhoneAuthModal({
     }
     setLoading(true);
     try {
-      const res = await signInWithPhoneOtp(fullPhone, otpCode, fullName, password);
-      toast.success('Inscription et vérification réussies !');
+      const res = await signInWithPhoneOtp(fullPhone, otpCode, fullName, password, commune, 'Kinshasa');
+      toast.success(`Inscription réussie ! Bienvenue résident de ${commune}.`);
       onSuccess?.(res.phone);
       onOpenChange(false);
     } catch (err: any) {
@@ -353,6 +360,39 @@ export default function PhoneAuthModal({
                 </div>
 
                 <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-extrabold uppercase text-amber-400 tracking-wider flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 text-amber-400" />
+                      Commune de Résidence (Kinshasa)
+                    </label>
+                    <span className="text-[10px] text-amber-400/80 font-medium">Requis</span>
+                  </div>
+                  <div className="relative">
+                    <select
+                      value={commune}
+                      onChange={(e) => setCommune(e.target.value)}
+                      className="w-full h-12 rounded-2xl bg-background/80 border border-amber-500/30 px-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50 appearance-none font-medium cursor-pointer"
+                    >
+                      <option value="" disabled className="bg-slate-900 text-muted-foreground">
+                        -- Choisissez votre commune --
+                      </option>
+                      {KINSHASA_COMMUNES.map((c) => (
+                        <option key={c} value={c} className="bg-slate-900 text-white">
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-muted-foreground font-mono">
+                      ▼
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/80 mt-1 flex items-center gap-1">
+                    <ShieldCheck className="h-3 w-3 text-emerald-400 shrink-0" />
+                    Donne accès aux tombolas de votre commune + toute la ville (verrouillé 90 jours).
+                  </p>
+                </div>
+
+                <div>
                   <label className="text-xs font-extrabold uppercase text-amber-400 tracking-wider block mb-1.5">
                     Créer un Mot de passe (min. 6 caractères)
                   </label>
@@ -376,7 +416,7 @@ export default function PhoneAuthModal({
 
                 <Button
                   onClick={handleSignUpRequestOtp}
-                  disabled={loading || !fullName || !phoneDigits || password.length < 6}
+                  disabled={loading || !fullName || !phoneDigits || !commune || password.length < 6}
                   className="w-full h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20"
                 >
                   {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <KeyRound className="h-5 w-5 mr-2" />}

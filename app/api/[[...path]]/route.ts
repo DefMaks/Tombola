@@ -162,17 +162,27 @@ async function handler(request, ctx) {
 
         const passwordHash = rawPassword ? hashPassword(rawPassword) : null;
         const nameToSet = fullName || 'Participant Punchy';
+        const commune = payload.commune ? String(payload.commune).trim() : null;
+        const city = payload.city ? String(payload.city).trim() : 'Kinshasa';
+        const lockUntil = commune ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString() : null;
+
         let user = await one('SELECT * FROM users WHERE phone_number=$1', [cleaned]);
         if (!user) {
           user = await one(
-            'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-            [cleaned, nameToSet, 'USER', passwordHash, true]
+            'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified, city, commune, commune_updated_at, commune_locked_until) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+            [cleaned, nameToSet, 'USER', passwordHash, true, city, commune, commune ? new Date().toISOString() : null, lockUntil]
           );
         } else {
           let updateFields: string[] = [];
           let params: any[] = [cleaned];
           if (fullName) { params.push(fullName); updateFields.push(`full_name=$${params.length}`); }
           if (passwordHash) { params.push(passwordHash); updateFields.push(`password_hash=$${params.length}`); }
+          if (commune && !user.commune) {
+            params.push(city); updateFields.push(`city=$${params.length}`);
+            params.push(commune); updateFields.push(`commune=$${params.length}`);
+            params.push(new Date().toISOString()); updateFields.push(`commune_updated_at=$${params.length}`);
+            params.push(lockUntil); updateFields.push(`commune_locked_until=$${params.length}`);
+          }
           params.push(true); updateFields.push(`is_verified=$${params.length}`);
 
           if (updateFields.length > 0) {
@@ -251,6 +261,19 @@ async function handler(request, ctx) {
       if (segs.length === 1 && method === 'GET') {
         const status = url.searchParams.get('status') || 'ACTIVE';
         const category = url.searchParams.get('category'); // slug
+        let commune = url.searchParams.get('commune');
+        const userPhone = url.searchParams.get('user_phone') || url.searchParams.get('phone');
+
+        if (!commune && userPhone) {
+          let cleaned = String(userPhone).replace(/[\s\-\(\)\.]/g, '').trim();
+          if (cleaned.startsWith('0')) cleaned = '243' + cleaned.slice(1);
+          if (!cleaned.startsWith('+')) cleaned = '+' + cleaned;
+          try {
+            const u = await one('SELECT commune FROM users WHERE phone_number=$1', [cleaned]);
+            if (u?.commune) commune = u.commune;
+          } catch (e) {}
+        }
+
         const clauses = [];
         const args = [];
         if (status === 'ALL') {
@@ -265,12 +288,26 @@ async function handler(request, ctx) {
           clauses.push(`r.status=$${args.length}`);
         }
         if (category) { args.push(category); clauses.push(`c.slug=$${args.length}`); }
+
+        // Filter by territory: City-wide raffles + user's resident commune only
+        if (commune && String(commune).trim().length > 0) {
+          args.push(String(commune).trim().toLowerCase());
+          clauses.push(`(r.scope_type = 'CITY' OR r.scope_type IS NULL OR (r.scope_type = 'COMMUNE' AND LOWER(COALESCE(r.target_commune,'')) = $${args.length}))`);
+        } else {
+          // If no commune specified or not logged in: only City raffles
+          clauses.push(`(r.scope_type = 'CITY' OR r.scope_type IS NULL OR r.target_commune IS NULL)`);
+        }
+
         const where = clauses.length ? 'WHERE ' + clauses.join(' AND ') : '';
+        const cleanCommuneSql = commune ? commune.replace(/'/g, "''") : '';
         const sql = `
           SELECT r.*, c.slug AS category_slug, c.name AS category_name
           FROM raffles r LEFT JOIN categories c ON c.id=r.category_id
           ${where}
-          ORDER BY CASE WHEN r.status='ACTIVE' THEN 0 WHEN r.status='PENDING_DRAW' THEN 1 ELSE 2 END, r.ends_at ASC NULLS LAST
+          ORDER BY 
+            ${commune ? `CASE WHEN LOWER(COALESCE(r.target_commune,'')) = LOWER('${cleanCommuneSql}') THEN 0 ELSE 1 END, ` : ''}
+            CASE WHEN r.status='ACTIVE' THEN 0 WHEN r.status='PENDING_DRAW' THEN 1 ELSE 2 END, 
+            r.ends_at ASC NULLS LAST
         `;
         const rows = await many(sql, args);
         return json(rows);
@@ -325,6 +362,19 @@ async function handler(request, ctx) {
         if (qty > available) return err(`Seulement ${available} ticket(s) disponible(s)`);
 
         const user = await upsertUser(phone_number, full_name);
+
+        // Check territorial eligibility (Commune vs City)
+        if (raffle.scope_type === 'COMMUNE' && raffle.target_commune) {
+          const userCommune = user?.commune ? String(user.commune).trim().toLowerCase() : '';
+          const targetCommune = String(raffle.target_commune).trim().toLowerCase();
+          if (!userCommune || userCommune !== targetCommune) {
+            return err(
+              `Cette tombola est exclusivement réservée aux résidents de la commune de ${raffle.target_commune}. Votre commune enregistrée est : "${user.commune || 'Non renseignée'}". Vous pouvez participer à toutes les tombolas de la ville de Kinshasa !`,
+              403,
+              { required_commune: raffle.target_commune, user_commune: user.commune || null }
+            );
+          }
+        }
 
         // Check IS_PROD secret (if false or not 'true', force payment to 10 CDF for testing)
         const isProd = String(process.env.IS_PROD || '').toLowerCase() === 'true' || process.env.IS_PROD === '1';
@@ -465,7 +515,7 @@ async function handler(request, ctx) {
         }
         if (method === 'POST' || method === 'PUT') {
           const body = await request.json();
-          const { phone: userPhone, full_name, password, new_password } = body;
+          const { phone: userPhone, full_name, password, new_password, commune, city } = body;
           if (!userPhone) return err('phone required');
           let user = await one('SELECT * FROM users WHERE phone_number=$1', [userPhone]);
 
@@ -478,10 +528,14 @@ async function handler(request, ctx) {
             passwordHash = hashPassword(String(pwdToSet));
           }
 
+          const cleanCommune = commune !== undefined && commune !== null ? String(commune).trim() : null;
+          const cleanCity = city !== undefined && city !== null ? String(city).trim() : 'Kinshasa';
+
           if (!user) {
+            const lockUntil = cleanCommune ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString() : null;
             user = await one(
-              'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-              [userPhone, full_name || 'Participant Punchy', 'USER', passwordHash, true]
+              'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified, city, commune, commune_updated_at, commune_locked_until) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+              [userPhone, full_name || 'Participant Punchy', 'USER', passwordHash, true, cleanCity, cleanCommune, cleanCommune ? new Date().toISOString() : null, lockUntil]
             );
           } else {
             let updates = [];
@@ -494,6 +548,33 @@ async function handler(request, ctx) {
             if (passwordHash) {
               params.push(passwordHash);
               updates.push(`password_hash=$${params.length}`);
+            }
+
+            // Handle Commune update with 90-day anti-opportunism locking rule
+            if (cleanCommune !== null && cleanCommune !== '') {
+              // If user already had a commune and is attempting to change it to a different one
+              if (user.commune && user.commune.toLowerCase() !== cleanCommune.toLowerCase()) {
+                if (user.commune_locked_until) {
+                  const lockDate = new Date(user.commune_locked_until);
+                  const now = new Date();
+                  if (lockDate.getTime() > now.getTime()) {
+                    const remainingDays = Math.max(1, Math.ceil((lockDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+                    const formattedDate = lockDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                    return err(
+                      `Votre commune (${user.commune}) est verrouillée pour 3 mois (règle anti-opportunisme). Modification impossible avant le ${formattedDate} (encore ${remainingDays} jour(s) de verrouillage).`,
+                      403,
+                      { remainingDays, lockedUntil: user.commune_locked_until, currentCommune: user.commune }
+                    );
+                  }
+                }
+              }
+
+              params.push(cleanCommune);
+              updates.push(`commune=$${params.length}`);
+              params.push(cleanCity);
+              updates.push(`city=$${params.length}`);
+              updates.push(`commune_updated_at=now()`);
+              updates.push(`commune_locked_until=now() + interval '90 days'`);
             }
 
             if (updates.length > 0) {

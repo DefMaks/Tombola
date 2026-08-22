@@ -60,9 +60,16 @@ export async function sendPhoneOtp(rawPhone: string) {
 }
 
 /**
- * Verify OTP and authenticate / register user with optional password
+ * Verify OTP and authenticate / register user with optional password, commune and city
  */
-export async function signInWithPhoneOtp(rawPhone: string, otpCode: string, fullName?: string, password?: string) {
+export async function signInWithPhoneOtp(
+  rawPhone: string,
+  otpCode: string,
+  fullName?: string,
+  password?: string,
+  commune?: string,
+  city?: string
+) {
   const formattedPhone = formatDRCPhone(rawPhone);
   const cleanCode = String(otpCode || '').trim();
 
@@ -78,6 +85,8 @@ export async function signInWithPhoneOtp(rawPhone: string, otpCode: string, full
       otpCode: cleanCode,
       fullName: fullName || 'Participant Punchy',
       password: password || undefined,
+      commune: commune || undefined,
+      city: city || 'Kinshasa',
     }),
   });
 

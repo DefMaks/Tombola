@@ -8,7 +8,7 @@ import {
   Info, 
   FileText, 
   Mail, 
-  ArrowLeft, 
+  ArrowLeft, MapPin,
   Send, 
   Loader2, 
   CheckCircle2, 
@@ -170,7 +170,7 @@ export default function InfoPage() {
               <div className="bg-card border border-border rounded-3xl p-5 shadow-sm space-y-4">
                 <div className="flex items-center gap-3 border-b border-border pb-3">
                   <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-500">
-                    <Building2 className="h-6 w-6" />
+                    <MapPin className="h-6 w-6" />
                   </div>
                   <div>
                     <h2 className="font-extrabold text-lg text-foreground">

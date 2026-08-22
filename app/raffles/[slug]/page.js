@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Ticket, Clock, Users, Zap, ShieldCheck, ChevronRight, Loader2, Phone, CheckCircle2, XCircle, Trophy } from 'lucide-react';
+import { ArrowLeft, Ticket, Clock, Users, Zap, ShieldCheck, ChevronRight, Loader2, Phone, CheckCircle2, XCircle, Trophy, MapPin, Building2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -136,6 +136,11 @@ export default function RafflePage() {
             <div>
               <div className="flex items-center gap-1.5 flex-wrap mb-2">
                 <Badge variant="secondary">{raffle.category_name || 'Tombola'}</Badge>
+                {raffle.scope_type === 'COMMUNE' && raffle.target_commune && (
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 font-bold text-[11px] flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> {raffle.target_commune}
+                  </Badge>
+                )}
                 {isCompleted && (
                   <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/40 font-bold">
                     🏆 Prix remporté (Tirage terminé)
@@ -413,6 +418,13 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
           <>
             <SheetHeader><SheetTitle>Participer à la Tombola</SheetTitle></SheetHeader>
             <div className="space-y-5 pt-4">
+              {raffle.scope_type === 'COMMUNE' && raffle.target_commune && (
+                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-300 font-medium">
+                  <MapPin className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <span>Tombola territoriale réservée aux résidents de <b>{raffle.target_commune}</b></span>
+                </div>
+              )}
+
               <div>
                 <label className="text-sm font-semibold mb-2 block">Quantité de tickets</label>
                 <div className="grid grid-cols-4 gap-2">
