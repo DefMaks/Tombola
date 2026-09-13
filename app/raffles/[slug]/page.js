@@ -241,6 +241,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
   const [quantity, setQuantity] = useState(1);
   const [phoneDigits, setPhoneDigits] = useState('');
   const [operator, setOperator] = useState('');
+  const [ageVerified, setAgeVerified] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
   const [tx, setTx] = useState(null);
   const [isProdMode, setIsProdMode] = useState(true);
@@ -522,9 +523,10 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                 </div>
               </div>
 
+              <div className="flex items-start space-x-2 mb-4 text-left"><input type="checkbox" id="ageVerified" checked={ageVerified} onChange={(e) => setAgeVerified(e.target.checked)} className="mt-1" /><label htmlFor="ageVerified" className="text-xs text-muted-foreground leading-snug">Je certifie avoir au moins 18 ans et accepter le règlement officiel de la tombola.</label></div>
               <Button
                 onClick={() => initiate.mutate()}
-                disabled={phoneDigits.length < 9 || !operator || initiate.isPending}
+                disabled={!ageVerified || phoneDigits.length < 9 || !operator || initiate.isPending}
                 size="lg"
                 className="w-full h-14 font-bold text-base bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-900 shadow-xl disabled:opacity-50"
               >
@@ -542,6 +544,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                   </>
                 )}
               </Button>
+              <p className="mt-4 text-[10px] text-center text-muted-foreground">Les jeux d&apos;argent sont interdits aux mineurs. Jouez avec modération.</p>
             </div>
           </>
         )}
