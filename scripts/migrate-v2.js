@@ -80,7 +80,7 @@ WHERE NOT EXISTS (SELECT 1 FROM advertisements WHERE zone='void' AND is_active=t
 `;
 
 (async () => {
-  const client = new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  const client = new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: true } });
   try {
     await client.connect();
     console.log('✓ Connected to Neon');

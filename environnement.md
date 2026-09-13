@@ -17,7 +17,7 @@ Ce fichier récapitule l'ensemble des variables d'environnement, clés d'API, UR
 
 ## 3. Backend & Proxy Supabase (DefMaks Edge Functions)
 - **SUPABASE_URL**: `https://hcpogyjdbtcxndzpyjvd.supabase.co`
-- **SUPABASE_ANON_KEY**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjcG9neWpkYnRjeG5kenB5anZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4ODc2NjIsImV4cCI6MjA2ODQ2MzY2Mn0.Y-V4hPt_c1rl2ffYZ9nG53R4VuhzrmBIseJSlqJvaNo`
+- **SUPABASE_ANON_KEY**: `<SUPABASE_ANON_KEY>`
 - **NEXT_PUBLIC_DEFMAKS_PROXY_URL**: `https://hcpogyjdbtcxndzpyjvd.supabase.co/functions/v1/twigapaie-proxy`
 
 ---
