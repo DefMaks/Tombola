@@ -18,6 +18,13 @@ export default function MyTicketsPage() {
 
   useEffect(() => {
     const saved = localStorage.getItem('user_phone');
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      localStorage.removeItem('user_phone');
+      setSavedPhone('');
+      setPhone('');
+      return;
+    }
     if (saved) { setPhone(saved); setSavedPhone(saved); }
   }, []);
 
