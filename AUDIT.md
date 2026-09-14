@@ -195,3 +195,14 @@ Le MVP est **fonctionnellement complet** et **démontrable** end-to-end. Le flow
 Avant mise en production réelle, **traiter les 4 points critiques 🔴** ci-dessus (surtout auth admin + TwigaPaie token + OTP + réconciliation). Ces items représentent ~5 jours de dev pour un backend senior.
 
 La dette technique restante est **acceptable pour un MVP** et n'entrave pas la validation product-market fit.
+
+## ⚖️ Conformité Réglementaire & Protection des Joueurs (RDC - Ministère des Finances)
+
+| Critère de Conformité | Statut | Détail de l'implémentation & Mesure de Protection |
+|---|:---:|---|
+| **Vérification de la majorité (+18 ans)** | 🟢 Conforme | Case à cocher obligatoire au checkout + blocage préventif. |
+| **Confidentialité des données (Données privées)** | 🟢 Conforme | Remplacement du téléphone en clair par authentification SMS OTP. |
+| **Intégrité financière (Non-perte de tickets débités)** | 🟢 Conforme | Routine cron de réconciliation asynchrone des transactions PENDING. |
+| **Transparence opérationnelle (Provably Fair)** | 🟢 Conforme | Tirage cryptographique SHA-256 auditable publiquement via draw_logs. |
+| **Clarté du règlement & Modalités de livraison** | 🟢 Conforme | Page /reglement publiée (prix 1$, tirage 20h30, contact livraison H+24). |
+| **Protection administrative contre la manipulation** | 🟢 Conforme | Endpoints de tirage et création sécurisés par token d'administration. |

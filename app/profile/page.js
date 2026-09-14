@@ -47,6 +47,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (!token && typeof window !== 'undefined') {
+      localStorage.removeItem('user_phone');
+      setSavedPhone('');
+      setPhone('');
+      return;
+    }
     if (saved) {
       setPhone(saved);
       setSavedPhone(saved);
