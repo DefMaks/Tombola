@@ -200,7 +200,7 @@ export default function InfoPage() {
                         <ShieldCheck className="h-4 w-4" /> Transparence Équitable SHA-256
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Chaque ticket à 1$ participe à un algorithme certifié vérifiable en temps réel par tout participant via la signature SHA-256 du tirage.
+                        Chaque Punch à 1$ participe à un algorithme certifié vérifiable en temps réel par tout participant via la signature SHA-256 du tirage.
                       </p>
                     </div>
                     <p>
@@ -251,7 +251,7 @@ export default function InfoPage() {
                     <div className="space-y-2">
                       <h3 className="font-bold text-foreground text-base">1. Éligibilité &amp; Participation</h3>
                       <p className="text-xs">
-                        La participation est ouverte à toute personne résidant en RDC ou en mesure de recevoir les lots sur le territoire national. L&apos;achat d&apos;un ticket à 1$ est définitif et valide la participation au tirage associé.
+                        La participation est ouverte à toute personne résidant en RDC ou en mesure de recevoir les lots sur le territoire national. L&apos;achat d&apos;un Punch à 1$ est définitif et valide la participation au Round associé.
                       </p>
                     </div>
 
@@ -265,7 +265,7 @@ export default function InfoPage() {
                     <div className="space-y-2">
                       <h3 className="font-bold text-foreground text-base">3. Remise des Lots</h3>
                       <p className="text-xs">
-                        Après la clôture du tirage, le gagnant officiel est contacté par téléphone ou SMS sur le numéro fourni lors de l&apos;achat. La remise du lot s&apos;effectue sur présentation de la preuve de ticket ou de la pièce d&apos;identité.
+                        Après la clôture du tirage, le gagnant officiel est contacté par téléphone ou SMS sur le numéro fourni lors de l&apos;achat. La remise du lot s&apos;effectue sur présentation de la preuve d&apos;achat du Punch ou de la pièce d&apos;identité.
                       </p>
                     </div>
                   </div>
@@ -365,7 +365,7 @@ export default function InfoPage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="Ex: Question sur un tirage, assistance ticket..."
+                        placeholder="Ex: Question sur un tirage, assistance Punch..."
                         value={form.subject}
                         onChange={(e) => setForm({ ...form, subject: e.target.value })}
                         required

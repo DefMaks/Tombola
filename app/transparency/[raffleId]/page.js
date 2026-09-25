@@ -55,7 +55,7 @@ export default function TransparencyPage() {
             <ShieldCheck className="h-5 w-5 text-emerald-500"/>
             <div className="font-bold">Vérification cryptographique</div>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">Chaque tirage utilise un <b>seed unique</b> combinant l&apos;ID de la tombola, le nombre de tickets vendus et un timestamp. Le hash SHA-256 de ce seed détermine le numéro gagnant (mod nombre de tickets vendus).</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">Chaque tirage utilise un <b>seed unique</b> combinant l&apos;ID du Round, le nombre de Punches vendus et un timestamp. Le hash SHA-256 de ce seed détermine le numéro gagnant (mod nombre de Punches vendus).</p>
         </div>
 
         {/* Raffle info */}
@@ -68,8 +68,8 @@ export default function TransparencyPage() {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <Row label="Tickets vendus" value={raffle.tickets_sold}/>
-            <Row label="Max tickets" value={raffle.max_tickets}/>
+            <Row label="Punches vendus" value={raffle.tickets_sold}/>
+            <Row label="Max Punches" value={raffle.max_tickets}/>
             <Row label="Type" value={raffle.type}/>
             <Row label="Date tirage" value={raffle.drawn_at ? new Date(raffle.drawn_at).toLocaleString('fr-FR') : '—'}/>
           </div>
@@ -80,7 +80,7 @@ export default function TransparencyPage() {
             <div className="rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-2 border-amber-500/50 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Trophy className="h-5 w-5 text-amber-400"/>
-                <div className="font-bold">Ticket gagnant</div>
+                <div className="font-bold">Punch gagnant</div>
               </div>
               <div className="font-mono text-4xl font-black text-primary">#{winning_ticket.ticket_number}</div>
               {winner_user && <div className="text-xs text-muted-foreground mt-1">Gagnant: {winner_user.phone_number}</div>}

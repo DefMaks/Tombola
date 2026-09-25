@@ -357,9 +357,9 @@ async function handler(request, ctx) {
         if (!raffle_slug || !phone_number || !operator) return err('Champs requis manquants');
 
         const raffle = await one('SELECT * FROM raffles WHERE slug=$1 AND status=$2', [raffle_slug, 'ACTIVE']);
-        if (!raffle) return err('Tombola non active ou introuvable', 404);
+        if (!raffle) return err('Round non actif ou introuvable', 404);
         const available = raffle.max_tickets - raffle.tickets_sold;
-        if (qty > available) return err(`Seulement ${available} ticket(s) disponible(s)`);
+        if (qty > available) return err(`Seulement ${available} ${available > 1 ? 'Punches disponibles' : 'Punch disponible'}`);
 
         const user = await upsertUser(phone_number, full_name);
 
@@ -369,7 +369,7 @@ async function handler(request, ctx) {
           const targetCommune = String(raffle.target_commune).trim().toLowerCase();
           if (!userCommune || userCommune !== targetCommune) {
             return err(
-              `Cette tombola est exclusivement réservée aux résidents de la commune de ${raffle.target_commune}. Votre commune enregistrée est : "${user.commune || 'Non renseignée'}". Vous pouvez participer à toutes les tombolas de la ville de Kinshasa !`,
+              `Ce Round est exclusivement réservé aux résidents de la commune de ${raffle.target_commune}. Votre commune enregistrée est : "${user.commune || 'Non renseignée'}". Vous pouvez participer à tous les Rounds de la ville de Kinshasa !`,
               403,
               { required_commune: raffle.target_commune, user_commune: user.commune || null }
             );
@@ -656,13 +656,19 @@ async function handler(request, ctx) {
     if (segs[0] === 'ads' && method === 'GET') {
       const reqZone = url.searchParams.get('zone');
       const zone = reqZone || segs[1] || 'home';
+
+      // 1) Void n'a pas sa place, nous ne l'utiliserons pas
+      if (zone === 'void') {
+        return json([]);
+      }
+
       const rawSources = url.searchParams.get('sources') || url.searchParams.get('src') || url.searchParams.get('source');
 
       let includeSpb = true; // Supabase / DefMaks
       let includeNdb = true; // Neon Database
 
       if (rawSources) {
-        let parsed = [];
+        let parsed: any[] = [];
         try {
           if (rawSources.startsWith('[')) {
             parsed = JSON.parse(rawSources);
@@ -677,14 +683,15 @@ async function handler(request, ctx) {
         includeNdb = srcUpper.some(s => ['NDB', 'NEON', 'ALL'].includes(s));
       }
 
-      const allAds = [];
+      const allAds: any[] = [];
 
       // 1. Fetch SPB (Supabase / DefMaks) Ads
+      // Règle: Si elle vient de hcpogyjdbtcxndzpyjvd, alors nous devons trouver "Punchy" ou "All" dans target.
       if (includeSpb) {
         try {
           const supabaseUrl = process.env.SUPABASE_URL || 'https://hcpogyjdbtcxndzpyjvd.supabase.co';
           const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-          const headers = { 'Content-Type': 'application/json' };
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
           if (supabaseAnonKey) {
             headers['apikey'] = supabaseAnonKey;
             headers['Authorization'] = `Bearer ${supabaseAnonKey}`;
@@ -699,6 +706,22 @@ async function handler(request, ctx) {
             const supAds = await res.json();
             if (Array.isArray(supAds)) {
               supAds.forEach(a => {
+                if (a.zone === 'void') return;
+
+                // Validation target pour Supabase (hcpogyjdbtcxndzpyjvd)
+                const targets = Array.isArray(a.target)
+                  ? a.target
+                  : (typeof a.target === 'string' ? [a.target] : []);
+
+                const hasPunchyOrAll = targets.some((t: any) => {
+                  const s = String(t || '').trim().toLowerCase();
+                  return s === 'punchy' || s === 'all';
+                });
+
+                if (!hasPunchyOrAll) {
+                  return; // Rejeté si target ne contient pas "Punchy" ou "All"
+                }
+
                 allAds.push({
                   ...a,
                   source: 'SPB',
@@ -708,22 +731,24 @@ async function handler(request, ctx) {
               });
             }
           }
-        } catch (e) {
+        } catch (e: any) {
           console.warn('[ADS] Supabase REST (SPB) query failed:', e.message);
         }
       }
 
       // 2. Fetch NDB (Neon Database) Ads
+      // Règle: Si la pub provient de neon, target ne sera pas nécessaire
       if (includeNdb) {
         try {
           const rows = await many(`
             SELECT * FROM advertisements
-            WHERE (zone=$1 OR zone IS NULL) AND is_active=true
+            WHERE (zone=$1 OR zone IS NULL) AND is_active=true AND (zone != 'void' OR zone IS NULL)
             ORDER BY created_at DESC LIMIT 10
           `, [zone]);
 
           if (rows && rows.length > 0) {
             rows.forEach(a => {
+              if (a.zone === 'void') return;
               allAds.push({
                 ...a,
                 source: 'NDB',
@@ -732,7 +757,7 @@ async function handler(request, ctx) {
               });
             });
           }
-        } catch (e) {
+        } catch (e: any) {
           console.warn('[ADS] Neon DB (NDB) query failed:', e.message);
         }
       }
@@ -742,7 +767,10 @@ async function handler(request, ctx) {
         try {
           const memRows = await many(`SELECT * FROM advertisements WHERE zone=$1`, [zone]);
           if (memRows && memRows.length > 0) {
-            memRows.forEach(a => allAds.push({ ...a, source: 'NDB', zone: a.zone || zone }));
+            memRows.forEach(a => {
+              if (a.zone === 'void') return;
+              allAds.push({ ...a, source: 'NDB', zone: a.zone || zone });
+            });
           }
         } catch (e) {
           // ignore

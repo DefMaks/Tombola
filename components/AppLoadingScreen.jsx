@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function AppLoadingScreen({ isVisible = true, message = 'Chargement des tombolas...' }) {
+export default function AppLoadingScreen({ isVisible = true, message = 'Chargement des rounds...' }) {
   return (
     <AnimatePresence>
       {isVisible && (

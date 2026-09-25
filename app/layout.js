@@ -3,7 +3,7 @@ import LayoutClient from './layout-client';
 
 export const metadata = {
   title: 'Punchy',
-  description: 'Participez aux tombolas à 1$. Tirage cryptographique équitable SHA-256.',
+  description: 'Participez aux rounds avec vos punches à 1$. Tirage cryptographique équitable SHA-256.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

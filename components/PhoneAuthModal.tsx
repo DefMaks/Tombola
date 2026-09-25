@@ -388,7 +388,7 @@ export default function PhoneAuthModal({
                   </div>
                   <p className="text-[11px] text-muted-foreground/80 mt-1 flex items-center gap-1">
                     <ShieldCheck className="h-3 w-3 text-emerald-400 shrink-0" />
-                    Donne accès aux tombolas de votre commune + toute la ville (verrouillé 90 jours).
+                    Donne accès aux rounds de votre commune + toute la ville (verrouillé 90 jours).
                   </p>
                 </div>
 

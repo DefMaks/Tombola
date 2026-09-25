@@ -108,7 +108,7 @@ export default function CommuneSelectModal({
                 </Badge>
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Tombolas territoriales & Tombolas de la ville
+                Rounds territoriaux & Rounds de la ville
               </DialogDescription>
             </div>
           </div>
@@ -121,12 +121,12 @@ export default function CommuneSelectModal({
               <Sparkles className="h-4 w-4" /> Pourquoi préciser votre commune ?
             </div>
             <p className="text-muted-foreground">
-              Punchy organise des <strong className="text-foreground">Tombolas Communales</strong> exclusives, avec un nombre de participants réduit et <strong className="text-amber-400">des chances de gain décuplées</strong> pour les habitants locaux.
+              Punchy organise des <strong className="text-foreground">Rounds Communaux</strong> exclusifs, avec un nombre de participants réduit et <strong className="text-amber-400">des chances de gain décuplées</strong> pour les habitants locaux.
             </p>
             <div className="flex items-start gap-2 pt-1">
               <Building2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
               <span className="text-muted-foreground">
-                En indiquant votre commune, vous accédez à <strong className="text-foreground">toutes les tombolas de la Ville de Kinshasa</strong> + les <strong className="text-emerald-400">tombolas réservées à votre commune</strong>.
+                En indiquant votre commune, vous accédez à <strong className="text-foreground">tous les rounds de la Ville de Kinshasa</strong> + les <strong className="text-emerald-400">rounds réservés à votre commune</strong>.
               </span>
             </div>
           </div>

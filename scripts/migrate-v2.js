@@ -75,8 +75,12 @@ SELECT 'DefMaks Full Width', 'Large Page Banner', 'https://ucarecdn.com/cb9cd42d
 WHERE NOT EXISTS (SELECT 1 FROM advertisements WHERE zone='page' AND is_active=true);
 
 INSERT INTO advertisements (title, description, image_url, start_date, end_date, status, is_active, zone, external_link, target)
-SELECT 'Lokko DefMaks Secondary', 'Void Secondary Banner', 'https://ucarecdn.com/cb9cd42d-0937-44fc-a9b2-2df625a1a61a/-/preview/1000x488/', now() - interval '1 day', now() + interval '365 days', 'en cours', true, 'void', 'http://lokko.defmaks.com/', ARRAY['Punchy', 'ALL']
-WHERE NOT EXISTS (SELECT 1 FROM advertisements WHERE zone='void' AND is_active=true);
+SELECT 'Lokko DefMaks Secondary', 'Mid Page Banner Lokko', 'https://ucarecdn.com/6396e774-b7f5-4dbe-97de-85ffd257b3d7/-/preview/1000x384/', now() - interval '1 day', now() + interval '365 days', 'en cours', true, 'home_mid', 'http://lokko.defmaks.com/', ARRAY['Punchy', 'ALL']
+WHERE NOT EXISTS (SELECT 1 FROM advertisements WHERE zone='home_mid' AND is_active=true);
+
+INSERT INTO advertisements (title, description, image_url, start_date, end_date, status, is_active, zone, external_link, target)
+SELECT 'Annoncez vos produits sur Punchy', 'Footer Page Banner DefMaks', 'https://ucarecdn.com/3ce456eb-dde0-4acd-a56d-8dcc2cad8786/meetDefmaks.png', now() - interval '1 day', now() + interval '365 days', 'en cours', true, 'home_foot', 'https://defmaks.com/', ARRAY['Punchy', 'ALL']
+WHERE NOT EXISTS (SELECT 1 FROM advertisements WHERE zone='home_foot' AND is_active=true);
 `;
 
 (async () => {

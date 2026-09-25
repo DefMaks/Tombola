@@ -132,7 +132,7 @@ export default function WinnerNotificationBanner() {
   const submitTestimonialMutation = useMutation({
     mutationFn: async () => {
       if (!userPhone) throw new Error('Numéro de téléphone requis');
-      if (!activeWin?.slug) throw new Error('Tombola introuvable');
+      if (!activeWin?.slug) throw new Error('Round introuvable');
       if (!photoUrl) throw new Error('Veuillez joindre la photo de votre lot');
       if (!message || message.trim().length < 5) throw new Error('Veuillez écrire au moins quelques mots pour votre témoignage');
 
@@ -214,7 +214,7 @@ export default function WinnerNotificationBanner() {
                     🏆 VOUS AVEZ GAGNÉ !
                   </span>
                   <span className="text-[10px] text-amber-300 font-mono font-bold">
-                    Ticket #{currentPendingWin.ticket_number}
+                    Punch #{currentPendingWin.ticket_number}
                   </span>
                 </div>
                 <p className="text-xs font-bold text-white truncate">
@@ -272,7 +272,7 @@ export default function WinnerNotificationBanner() {
                 <div className="min-w-0 flex-1">
                   <div className="text-[10px] font-black uppercase text-amber-500">Lot Remporté</div>
                   <div className="font-bold text-sm text-foreground truncate">{activeWin.title}</div>
-                  <div className="text-xs text-muted-foreground font-mono">Ticket gagnant #{activeWin.ticket_number}</div>
+                  <div className="text-xs text-muted-foreground font-mono">Punch gagnant #{activeWin.ticket_number}</div>
                 </div>
               </div>
 
@@ -281,7 +281,7 @@ export default function WinnerNotificationBanner() {
                 <label className="text-xs font-bold text-foreground mb-1.5 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <Camera className="h-4 w-4 text-amber-400" />
-                    Photo du prix / avec vous <span className="text-red-500">*</span>
+                    Photo du round / avec vous <span className="text-red-500">*</span>
                   </span>
                   {photoUrl && <span className="text-emerald-400 text-[11px] font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Prête</span>}
                 </label>
@@ -310,7 +310,7 @@ export default function WinnerNotificationBanner() {
                 ) : (
                   <div className="relative aspect-[16/9] rounded-2xl overflow-hidden border-2 border-amber-500/40 bg-black">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={preview} alt="Aperçu du prix" className="w-full h-full object-cover" />
+                    <img src={preview} alt="Aperçu du round" className="w-full h-full object-cover" />
                     {isUploading && (
                       <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-2 text-white">
                         <Loader2 className="h-7 w-7 animate-spin text-amber-400" />

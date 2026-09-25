@@ -341,7 +341,7 @@ function PerspectiveRaffleCarousel({ raffles }) {
                     )}
                   </div>
 
-                  {/* Badge Droite: Nature de la Tombola */}
+                  {/* Badge Droite: Nature du Round */}
                   <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[10px] font-extrabold shadow-sm">
                     {getTypeBadgeLabel(raffle.type)}
                   </div>
@@ -468,15 +468,6 @@ export default function HomePage() {
     ? rafflesData
     : (rafflesData?.raffles || rafflesData?.data || []);
 
-  // Ads API Fetch & Parsing
-  const { data: adsData } = useQuery({
-    queryKey: ['ads', 'home'],
-    queryFn: () => fetch('/api/ads/home').then(r => r.json()),
-    refetchInterval: 60_000,
-  });
-  const adsList = Array.isArray(adsData)
-    ? adsData
-    : (adsData?.ads || adsData?.data || []);
 
   // Real Testimonials API Fetch & Parsing
   const { data: testimonialsData, isLoading: isTestimonialsLoading } = useQuery({
@@ -490,7 +481,7 @@ export default function HomePage() {
 
   const testimonialsList = rawTestimonials.map(t => {
     const name = t.full_name || t.name || t.phone_number || 'Gagnant Punchy';
-    const title = t.title || t.raffle_title || 'Tombola Punchy';
+    const title = t.title || t.raffle_title || 'Round Punchy';
     const slug = t.slug || t.raffle_slug || '';
     const hero_image_url = t.photo_url || t.hero_image_url || 'https://images.unsplash.com/photo-1592286927505-1def25115558?w=800&q=80';
     const type = t.badgeType || t.raffle_type || 'DAILY';
@@ -532,7 +523,6 @@ export default function HomePage() {
   });
   const featuredActiveRaffles = activeRaffles.filter(r => r.is_featured);
   const wonRaffles = raffleList.filter(r => r.status === 'COMPLETED').slice(0, 6);
-  const ad = adsList.length > 0 ? adsList[0] : null;
 
   const filteredActiveRaffles = activeRaffles.filter(r => {
     if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
@@ -542,16 +532,16 @@ export default function HomePage() {
   });
 
   const frequencyTabs = [
-    { id: 'ALL', label: 'Toutes', count: activeRaffles.length },
-    { id: 'DAILY', label: 'Journalières', count: activeRaffles.filter(r => r.type === 'DAILY').length },
+    { id: 'ALL', label: 'Tous', count: activeRaffles.length },
+    { id: 'DAILY', label: 'Journaliers', count: activeRaffles.filter(r => r.type === 'DAILY').length },
     { id: 'WEEKLY', label: 'Hebdomadaires', count: activeRaffles.filter(r => r.type === 'WEEKLY').length },
-    { id: 'MONTHLY', label: 'Mensuelles', count: activeRaffles.filter(r => r.type === 'MONTHLY').length },
+    { id: 'MONTHLY', label: 'Mensuels', count: activeRaffles.filter(r => r.type === 'MONTHLY').length },
   ];
 
   return (
     <main className="max-w-lg mx-auto pb-24 min-h-screen">
       {/* Fullscreen Centered Loading State */}
-      <AppLoadingScreen isVisible={isLoading} message="Chargement des tombolas..." />
+      <AppLoadingScreen isVisible={isLoading} message="Chargement des rounds..." />
 
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -609,7 +599,7 @@ export default function HomePage() {
       {/* Active raffles grid */}
       <section className="px-4 pt-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-lg">🔥 Tombolas en cours</h2>
+          <h2 className="font-bold text-lg">🔥 Rounds en cours</h2>
           <span className="text-xs text-muted-foreground">{filteredActiveRaffles.length} en cours</span>
         </div>
 
@@ -625,7 +615,7 @@ export default function HomePage() {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Toutes ({activeRaffles.length})
+              Tous ({activeRaffles.length})
             </button>
             <button
               onClick={() => setScopeFilter('CITY')}
@@ -686,7 +676,7 @@ export default function HomePage() {
         ) : filteredActiveRaffles.length === 0 ? (
           <div className="text-center py-8 px-4 rounded-2xl bg-card border border-border">
             <Ticket className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-medium text-muted-foreground">Aucune tombola disponible dans cette catégorie pour le moment.</p>
+            <p className="text-sm font-medium text-muted-foreground">Aucun round disponible dans cette catégorie pour le moment.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -695,30 +685,8 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* Bloc Publicitaire Avant Témoignages */}
-      <section className="px-4 pt-8">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 p-4 text-slate-950 shadow-xl border border-amber-400/30">
-          <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 rounded-full bg-amber-300/20 blur-xl pointer-events-none" />
-          <div className="flex items-center justify-between gap-3 relative z-10">
-            <div className="space-y-1">
-              <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-950 text-amber-400">
-                📢 ESPACE PUBLICITAIRE
-              </span>
-              <h3 className="font-extrabold text-sm sm:text-base text-slate-950 leading-tight">
-                Rejoignez le Club VIP & Multipliez vos Tickets !
-              </h3>
-              <p className="text-xs text-slate-900 font-medium opacity-90 leading-snug">
-                Profitez de nos offres partenaires exclusives et recevez des bonus quotidiens.
-              </p>
-            </div>
-            <div className="shrink-0">
-              <span className="px-3 py-2 rounded-xl bg-slate-950 text-amber-400 text-xs font-black shadow-md block text-center">
-                Offre VIP ⚡
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Bloc Publicitaire Avant Témoignages (home_mid) */}
+      <AdBlock zone="home_mid" sources={["SPB", "NDB"]} className="pt-6" />
 
       {/* Testimonials & Winners List */}
       <section className="px-4 pt-6">
@@ -805,29 +773,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Bloc Publicitaire Après Témoignages */}
-      <section className="px-4 pt-6 pb-4">
-        <div className="relative overflow-hidden rounded-2xl bg-card border border-amber-500/30 p-4 shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
-              <Sparkles className="h-6 w-6 text-amber-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                  PUBLICITÉ / PARTENARIAT
-                </span>
-              </div>
-              <h4 className="font-bold text-xs sm:text-sm text-foreground">
-                Annoncez vos produits sur Punchy
-              </h4>
-              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
-                Touchez des milliers de personnes quotidiennement. Devenez sponsor officiel de nos tombolas.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Bloc Publicitaire Après Témoignages (home_foot) */}
+      <AdBlock zone="home_foot" sources={["SPB", "NDB"]} className="pt-4 pb-4" />
 
       {/* Floating Testimonial Modal */}
       <Dialog open={!!selectedTestimonial} onOpenChange={(open) => { if (!open) setSelectedTestimonial(null); }}>
@@ -898,7 +845,7 @@ export default function HomePage() {
                     className="block w-full"
                   >
                     <Button className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 hover:from-amber-600 font-bold rounded-xl text-xs">
-                      Voir le prix <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                      Voir le round <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
                     </Button>
                   </Link>
                 </div>

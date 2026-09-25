@@ -42,7 +42,7 @@ export default function CommuneNoticeBanner({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-black text-sm text-foreground">
-                    Débloquez les Tombolas de votre Commune !
+                    Débloquez les Rounds de votre Commune !
                   </span>
                   <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-400 bg-amber-500/10">
                     Action requise
@@ -83,7 +83,7 @@ export default function CommuneNoticeBanner({
             <MapPin className="h-3.5 w-3.5" />
           </div>
           <div className="truncate">
-            <span className="text-muted-foreground text-[11px]">Tombolas affichées : </span>
+            <span className="text-muted-foreground text-[11px]">Rounds affichés : </span>
             <span className="font-bold text-foreground">Ville de Kinshasa</span>
             <span className="text-muted-foreground"> + </span>
             <span className="font-black text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">

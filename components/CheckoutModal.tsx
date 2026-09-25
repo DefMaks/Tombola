@@ -66,7 +66,7 @@ export default function CheckoutModal({
         phoneNumber,
         orderId: merchantRef,
         channel: operator,
-        description: `Achat ${quantity} ticket(s) Tombola Punchy`,
+        description: `Achat de ${quantity} ${quantity > 1 ? 'Punches' : 'Punch'} - Round Punchy`,
       });
 
       setIsSubmitting(false);
@@ -97,7 +97,7 @@ export default function CheckoutModal({
 
           if (status === 2) { // Payé avec succès
             stopPolling();
-            setStatusMessage('Paiement confirmé ! Vos tickets ont été attribués.');
+            setStatusMessage('Paiement confirmé ! Vos Punches ont été attribués.');
             if (onSuccess) onSuccess(apiData);
             setTimeout(() => onClose(), 2000);
           } else if (status === 3 || status === 4) { // Échec ou annulé
@@ -119,9 +119,9 @@ export default function CheckoutModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 text-white shadow-2xl border border-zinc-800">
-        <h2 className="text-xl font-bold text-amber-400">Achat de Tickets Tombola</h2>
+        <h2 className="text-xl font-bold text-amber-400">Achat de Punches - Round</h2>
         <p className="text-sm text-zinc-400 mt-1">
-          {quantity} ticket(s) pour un total de <span className="font-semibold text-white">{totalAmount} {currency}</span>
+          {quantity} {quantity > 1 ? 'Punches' : 'Punch'} pour un total de <span className="font-semibold text-white">{totalAmount} {currency}</span>
         </p>
 
         {errorMessage && (

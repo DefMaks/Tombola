@@ -8,11 +8,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DEFAULT_ZONE_BANNERS = {
   home: 'https://ucarecdn.com/3ce456eb-dde0-4acd-a56d-8dcc2cad8786/meetDefmaks.png',
+  home_mid: 'https://ucarecdn.com/6396e774-b7f5-4dbe-97de-85ffd257b3d7/-/preview/1000x384/',
+  home_foot: 'https://ucarecdn.com/3ce456eb-dde0-4acd-a56d-8dcc2cad8786/meetDefmaks.png',
   in_read: 'https://ucarecdn.com/6396e774-b7f5-4dbe-97de-85ffd257b3d7/-/preview/1000x384/',
   inner: 'https://ucarecdn.com/cb9cd42d-0937-44fc-a9b2-2df625a1a61a/-/preview/1000x488/',
   single: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&q=80',
   page: 'https://ucarecdn.com/cb9cd42d-0937-44fc-a9b2-2df625a1a61a/-/preview/1000x488/',
-  void: 'https://ucarecdn.com/cb9cd42d-0937-44fc-a9b2-2df625a1a61a/-/preview/1000x488/',
 };
 
 /**
@@ -45,7 +46,7 @@ export default function AdBlock({ zone = 'home', sources, src, source, ad, class
   const { data: fetchedAdsData } = useQuery({
     queryKey: ['ads', zone, sourcesParam],
     queryFn: () => fetch(queryUrl).then(r => r.json()),
-    enabled: !ad,
+    enabled: zone !== 'void' && !ad,
     refetchInterval: 60_000,
   });
 
@@ -77,12 +78,15 @@ export default function AdBlock({ zone = 'home', sources, src, source, ad, class
 
   // Auto-slide effect
   useEffect(() => {
-    if (total <= 1 || isHovered) return;
+    if (zone === 'void' || total <= 1 || isHovered) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % total);
     }, 5000);
     return () => clearInterval(interval);
-  }, [total, isHovered]);
+  }, [zone, total, isHovered]);
+
+  // Void n'a pas sa place
+  if (zone === 'void') return null;
 
   const currentAd = adsList[currentIndex] || adsList[0] || defaultAd;
   const adSource = currentAd.source || 'SPB';

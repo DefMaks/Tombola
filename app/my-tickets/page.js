@@ -58,8 +58,8 @@ export default function MyTicketsPage() {
       <main className="max-w-lg mx-auto min-h-screen pb-24 px-4 pt-16">
         <div className="text-center mb-8">
           <Ticket className="h-16 w-16 mx-auto text-primary mb-4"/>
-          <h1 className="font-black text-2xl">Mes tickets</h1>
-          <p className="text-muted-foreground text-sm mt-2">Entrez votre numéro pour voir vos tickets, gains et transactions.</p>
+          <h1 className="font-black text-2xl">Mes Punches</h1>
+          <p className="text-muted-foreground text-sm mt-2">Entrez votre numéro pour voir vos Punches, gains et transactions.</p>
         </div>
         <div className="space-y-3">
           <div className="relative">
@@ -78,7 +78,7 @@ export default function MyTicketsPage() {
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-black text-xl">Mes tickets</h1>
+            <h1 className="font-black text-xl">Mes Punches</h1>
             <div className="text-xs text-muted-foreground">{savedPhone}</div>
           </div>
           {/** 
@@ -96,7 +96,7 @@ export default function MyTicketsPage() {
           </TabsList>
 
           <TabsContent value="active" className="space-y-3 pt-4">
-            {tickets.length === 0 && <EmptyState msg="Aucun ticket actif. Achetez-en un !"/>}
+            {tickets.length === 0 && <EmptyState msg="Aucun Punch actif. Prenez-en un !"/>}
             {tickets.map((t, i) => (
               <motion.div key={t.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}>
                 <Link href={`/raffles/${t.slug}`} prefetch={true} className="flex items-center gap-3 p-3 bg-card border border-border rounded-2xl hover:border-primary/50">
@@ -123,10 +123,10 @@ export default function MyTicketsPage() {
                   <div>
                     <Badge className="bg-amber-500 text-slate-900 mb-1">GAGNANT</Badge>
                     <div className="font-black text-base">{w.title}</div>
-                    <div className="font-mono text-primary text-sm">Ticket #{w.ticket_number}</div>
+                    <div className="font-mono text-primary text-sm">Punch #{w.ticket_number}</div>
                   </div>
                 </div>
-                <Link href={`/raffles/${w.slug}?readonly=true`} prefetch={true} className="mt-3 block text-xs text-center font-semibold text-primary hover:underline">Voir la tombola</Link>
+                <Link href={`/raffles/${w.slug}?readonly=true`} prefetch={true} className="mt-3 block text-xs text-center font-semibold text-primary hover:underline">Voir le Round</Link>
               </div>
             ))}
           </TabsContent>
@@ -137,8 +137,8 @@ export default function MyTicketsPage() {
               <div key={tx.id} className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl">
                 <TxIcon status={tx.status}/>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm line-clamp-1">{tx.raffle_title || 'Tombola'}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleString('fr-FR')} · {tx.quantity} ticket(s)</div>
+                  <div className="font-semibold text-sm line-clamp-1">{tx.raffle_title || 'Round'}</div>
+                  <div className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleString('fr-FR')} · {tx.quantity} {tx.quantity > 1 ? 'Punches' : 'Punch'}</div>
                 </div>
                 <div className="text-right">
                   <div className="font-bold">${Number(tx.amount).toFixed(2)}</div>

@@ -135,7 +135,7 @@ export default function RafflePage() {
           <div className="flex items-start justify-between gap-2">
             <div>
               <div className="flex items-center gap-1.5 flex-wrap mb-2">
-                <Badge variant="secondary">{raffle.category_name || 'Tombola'}</Badge>
+                <Badge variant="secondary">{raffle.category_name || 'Round'}</Badge>
                 {raffle.scope_type === 'COMMUNE' && raffle.target_commune && (
                   <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 font-bold text-[11px] flex items-center gap-1">
                     <MapPin className="h-3 w-3" /> {raffle.target_commune}
@@ -143,7 +143,7 @@ export default function RafflePage() {
                 )}
                 {isCompleted && (
                   <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/40 font-bold">
-                    🏆 Prix remporté (Tirage terminé)
+                    🏆 Round remporté (Tirage terminé)
                   </Badge>
                 )}
               </div>
@@ -214,7 +214,7 @@ export default function RafflePage() {
             <div className="w-full bg-slate-950/95 backdrop-blur-md text-amber-400 border border-amber-500/40 p-3 rounded-2xl flex items-center justify-center shadow-xl">
               <div className="flex items-center gap-2 font-bold text-xs">
                 <Trophy className="h-4 w-4 shrink-0 text-amber-400" />
-                <span>Ce prix a été remporté — Tirage terminé</span>
+                <span>Ce round a été remporté — Tirage terminé</span>
               </div>
             </div>
           )}
@@ -225,7 +225,7 @@ export default function RafflePage() {
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}
         title="Connexion requise"
-        description="Veuillez ouvrir une session pour participer à la tombola."
+        description="Veuillez vous connecter pour participer au Round."
         onSuccess={() => {
           setSheetOpen(true);
         }}
@@ -305,7 +305,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
         if (res?.transaction?.status === 'SUCCESS') {
           setTickets(res.tickets || []);
           setStep('success');
-          toast.success('Paiement confirmé avec succès ! Vos tickets sont réservés.');
+          toast.success('Paiement confirmé avec succès ! Vos Punches sont réservés.');
           onSuccess?.();
         } else if (res?.transaction?.status === 'FAILED') {
           setStep('failed');
@@ -417,17 +417,17 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
         <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto">
         {step === 'form' && (
           <>
-            <SheetHeader><SheetTitle>Participer à la Tombola</SheetTitle></SheetHeader>
+            <SheetHeader><SheetTitle>Participer au Round</SheetTitle></SheetHeader>
             <div className="space-y-5 pt-4">
               {raffle.scope_type === 'COMMUNE' && raffle.target_commune && (
                 <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-300 font-medium">
                   <MapPin className="h-4 w-4 text-emerald-400 shrink-0" />
-                  <span>Tombola territoriale réservée aux résidents de <b>{raffle.target_commune}</b></span>
+                  <span>Round territorial réservé aux résidents de <b>{raffle.target_commune}</b></span>
                 </div>
               )}
 
               <div>
-                <label className="text-sm font-semibold mb-2 block">Quantité de tickets</label>
+                <label className="text-sm font-semibold mb-2 block">Quantité de Punches</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 5, 10, 25].map(q => (
                     <button key={q} onClick={() => setQuantity(q)} className={cn('py-3 rounded-xl font-bold border-2 transition-colors', quantity === q ? 'border-amber-500 bg-amber-500/10 text-amber-500' : 'border-border text-muted-foreground')}>{q}</button>
@@ -523,7 +523,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                 </div>
               </div>
 
-              <div className="flex items-start space-x-2 mb-4 text-left"><input type="checkbox" id="ageVerified" checked={ageVerified} onChange={(e) => setAgeVerified(e.target.checked)} className="mt-1" /><label htmlFor="ageVerified" className="text-xs text-muted-foreground leading-snug">Je certifie avoir au moins 18 ans et accepter le règlement officiel de la tombola.</label></div>
+              <div className="flex items-start space-x-2 mb-4 text-left"><input type="checkbox" id="ageVerified" checked={ageVerified} onChange={(e) => setAgeVerified(e.target.checked)} className="mt-1" /><label htmlFor="ageVerified" className="text-xs text-muted-foreground leading-snug">Je certifie avoir au moins 18 ans et accepter le règlement officiel du Round.</label></div>
               <Button
                 onClick={() => initiate.mutate()}
                 disabled={!ageVerified || phoneDigits.length < 9 || !operator || initiate.isPending}
@@ -607,7 +607,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
             </div>
             <div>
               <div className="font-black text-2xl text-emerald-500">Paiement Réussi ! 🎉</div>
-              <div className="text-sm text-muted-foreground mt-2">Vos tickets pour la tombola ont été réservés avec succès :</div>
+              <div className="text-sm text-muted-foreground mt-2">Vos Punches pour le Round ont été réservés avec succès :</div>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               {tickets.map(t => (
@@ -617,7 +617,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
               ))}
             </div>
             <div className="flex gap-2 pt-2">
-              <Button asChild variant="outline" className="flex-1 h-12 font-bold"><Link href="/my-tickets" prefetch={true}>Voir mes tickets</Link></Button>
+              <Button asChild variant="outline" className="flex-1 h-12 font-bold"><Link href="/my-tickets" prefetch={true}>Voir mes Punches</Link></Button>
               <Button onClick={() => { reset(); setOpen(false); }} className="flex-1 h-12 font-bold bg-amber-500 hover:bg-amber-600 text-slate-900">Fermer</Button>
             </div>
           </motion.div>

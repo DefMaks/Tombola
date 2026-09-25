@@ -194,7 +194,7 @@ export default function ProfilePage() {
           </div>
           <h1 className="font-black text-2xl text-foreground">Mon Profil Punchy</h1>
           <p className="text-muted-foreground text-sm mt-2 max-w-xs mx-auto">
-            Connectez-vous avec votre numéro et mot de passe pour suivre vos tickets, consulter vos gains et participer aux tirages.
+            Connectez-vous avec votre numéro et mot de passe pour suivre vos Punches, consulter vos gains et participer aux tirages des Rounds.
           </p>
         </div>
 
@@ -265,7 +265,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid grid-cols-3 gap-2 mt-5">
-            <Stat value={allTickets.length} label="Tickets" />
+            <Stat value={allTickets.length} label="Punches" />
             <Stat value={winning.length} label="Gains" />
             <Stat value={`$${totalSpent.toFixed(0)}`} label="Dépensé" />
           </div>
@@ -341,7 +341,7 @@ export default function ProfilePage() {
           <Edit3 className="h-4 w-4 text-amber-400/80 shrink-0" />
         </button>
 
-        <QuickLink href="/my-tickets" icon={Ticket} label="Mes Tickets & Participations" />
+        <QuickLink href="/my-tickets" icon={Ticket} label="Mes Punches & Participations" />
         <QuickLink href="/info" icon={Info} label="Information, Termes & Support" />
      {/**   
 
@@ -360,7 +360,7 @@ export default function ProfilePage() {
             {txs.slice(0, 5).map((tx) => (
               <div key={tx.id} className="flex items-center justify-between p-2.5 rounded-xl bg-background/50 border border-border/50 text-xs">
                 <div>
-                  <div className="font-bold text-foreground line-clamp-1">{tx.raffle_title || 'Achat de ticket'}</div>
+                  <div className="font-bold text-foreground line-clamp-1">{tx.raffle_title || 'Achat de Punch'}</div>
                   <div className="text-muted-foreground text-[10px]">{new Date(tx.created_at).toLocaleDateString('fr-FR')} · {tx.payment_method || 'Mobile Money'}</div>
                 </div>
                 <div className="text-right">
@@ -518,7 +518,7 @@ function WinCard({ win, testimony, phone }) {
           <div className="flex-1 min-w-0">
             <Badge className="bg-amber-500 text-slate-950 font-black mb-1">GAGNANT</Badge>
             <div className="font-black text-base line-clamp-1">{win.title}</div>
-            <div className="font-mono text-amber-400 text-sm font-bold">Ticket #{win.ticket_number}</div>
+            <div className="font-mono text-amber-400 text-sm font-bold">Punch #{win.ticket_number}</div>
           </div>
         </div>
 
