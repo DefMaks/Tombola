@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Ticket, Clock, Users, Zap, ShieldCheck, ChevronRight, Loader2, Phone, CheckCircle2, XCircle, Trophy, MapPin, Building2 } from 'lucide-react';
+import { ArrowLeft, Ticket, Clock, Users, Zap, ShieldCheck, ChevronRight, Loader2, Phone, CheckCircle2, XCircle, Trophy, MapPin, Building2, Images, Maximize2, ZoomIn } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import BottomNav from '@/components/BottomNav';
 import PhoneAuthModal from '@/components/PhoneAuthModal';
 import PalierFireBadges from '@/components/PalierFireBadges';
 import AdBlock from '@/components/AdBlock';
+import ImageLightbox from '@/components/ImageLightbox';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { formatDRCPhone } from '@/lib/auth/actions';
@@ -81,6 +82,7 @@ export default function RafflePage() {
   const qc = useQueryClient();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const isReadOnly = searchParams.get('readonly') === 'true';
 
@@ -116,15 +118,36 @@ export default function RafflePage() {
   const pct = max > 0 ? (sold / max) * 100 : 0;
   const available = max - sold;
 
+  // Secondary gallery media images only (excluding the main hero image)
+  const galleryMedias = Array.isArray(raffle.medias)
+    ? raffle.medias.filter(m => m?.url && m.url !== raffle.hero_image_url)
+    : [];
+
+  // Clean description to avoid repeating "Description" under the "Description" heading
+  const rawDesc = raffle.description?.trim() || '';
+  const isPlaceholderDesc = /^description(\s+tombola\s+punchy)?$/i.test(rawDesc);
+  const cleanDescription = isPlaceholderDesc
+    ? ''
+    : rawDesc.replace(/Description\s+tombola\s+Punchy/gi, '').trim();
+
   return (
     <main className="max-w-lg mx-auto pb-32 min-h-screen">
-      {/* Header image */}
+      {/* Header image (no onclick as requested) */}
       <div className="relative">
         <div className="aspect-square bg-muted relative overflow-hidden">
-          {raffle.hero_image_url && <img src={raffle.hero_image_url} alt={raffle.title} className="w-full h-full object-cover"/>}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40"/>
+          {raffle.hero_image_url && (
+            <img 
+              src={raffle.hero_image_url} 
+              alt={raffle.title} 
+              className="w-full h-full object-cover"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40 pointer-events-none"/>
         </div>
-        <button onClick={() => router.back()} className="absolute top-4 left-4 p-2 rounded-full bg-black/50 backdrop-blur-md text-white">
+        <button 
+          onClick={() => router.back()} 
+          className="absolute top-4 left-4 p-2 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-md text-white transition-colors z-10"
+        >
           <ArrowLeft className="h-5 w-5"/>
         </button>
       </div>
@@ -180,15 +203,59 @@ export default function RafflePage() {
             </div>
           )}
 
-          <p className="text-sm leading-relaxed pt-2 text-muted-foreground">{raffle.description}</p>
+          {/* Description */}
+          <div className="pt-3 border-t border-border/50 space-y-1.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              Description
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
+              {cleanDescription || `${raffle.title}. Tentez votre chance avec vos Punches pour remporter ce lot d'exception.`}
+            </p>
+          </div>
         </div>
 
-        {/* Gallery */}
-        {raffle.medias && raffle.medias.length > 0 && (
-          <div className="mt-4 flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4">
-            {raffle.medias.map(m => (
-              <img key={m.id} src={m.url} alt={m.caption} className="h-24 w-24 object-cover rounded-xl shrink-0 border border-border"/>
-            ))}
+        {/* Gallery - only secondary media photos, excluding main hero image */}
+        {galleryMedias.length > 0 && (
+          <div className="mt-4 bg-card border border-border rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Images className="h-4 w-4 text-amber-500" />
+                <h3 className="font-bold text-sm text-foreground">
+                  Galerie photos ({galleryMedias.length})
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(0)}
+                className="text-xs font-semibold text-amber-500 hover:text-amber-400 flex items-center gap-0.5 cursor-pointer transition-colors"
+              >
+                Agrandir
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-thin">
+              {galleryMedias.map((m, idx) => (
+                <button
+                  key={m.id || idx}
+                  type="button"
+                  onClick={() => setLightboxIndex(idx)}
+                  className="group relative h-24 w-24 rounded-xl overflow-hidden shrink-0 border border-border hover:border-amber-500/80 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer shadow-sm bg-muted/30"
+                  aria-label={`Agrandir la photo ${idx + 1}`}
+                >
+                  <img
+                    src={m.url}
+                    alt={m.caption || `${raffle.title} - photo ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <div className="p-1.5 rounded-full bg-black/70 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ZoomIn className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -229,6 +296,15 @@ export default function RafflePage() {
         onSuccess={() => {
           setSheetOpen(true);
         }}
+      />
+
+      {/* Lightbox for prize image gallery */}
+      <ImageLightbox
+        images={galleryMedias}
+        isOpen={lightboxIndex !== null && galleryMedias.length > 0}
+        initialIndex={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
+        title={raffle.title}
       />
 
       <BottomNav />
