@@ -341,39 +341,32 @@ export default function ProfilePage() {
           <Edit3 className="h-4 w-4 text-amber-400/80 shrink-0" />
         </button>
 
-        <QuickLink href="/my-tickets" icon={Ticket} label="Mes Punches & Participations" />
+        <Link 
+          href="/my-tickets" 
+          prefetch={true} 
+          className="flex items-center gap-3.5 p-3.5 bg-card border border-border rounded-2xl hover:border-amber-500/50 transition-all shadow-sm group"
+        >
+          <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 shrink-0 group-hover:bg-amber-500/20 transition-colors">
+            <Ticket className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-foreground">Mes Punches & Participations</span>
+              {allTickets.length > 0 && (
+                <Badge variant="secondary" className="text-[10px] font-bold px-1.5 py-0">
+                  {allTickets.length}
+                </Badge>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground truncate">
+              Tickets actifs, Gains, Historique des Paiements & Transactions
+            </div>
+          </div>
+          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+        </Link>
+
         <QuickLink href="/info" icon={Info} label="Information, Termes & Support" />
-     {/**   
-
-        <QuickLink href="/transparence/1" icon={ShieldCheck} label="Vérifier la Transparence du Tirage" />
-      */}
       </section>
-
-      {/* Recent Transactions */}
-      {txs.length > 0 && (
-        <section className="px-4 pt-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Receipt className="h-5 w-5 text-amber-400" />
-            <h2 className="font-bold text-lg text-foreground">Historique des Paiements</h2>
-          </div>
-          <div className="space-y-2 bg-card border border-border rounded-2xl p-3">
-            {txs.slice(0, 5).map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between p-2.5 rounded-xl bg-background/50 border border-border/50 text-xs">
-                <div>
-                  <div className="font-bold text-foreground line-clamp-1">{tx.raffle_title || 'Achat de Punch'}</div>
-                  <div className="text-muted-foreground text-[10px]">{new Date(tx.created_at).toLocaleDateString('fr-FR')} · {tx.payment_method || 'Mobile Money'}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-black text-amber-400 text-sm">${Number(tx.amount).toFixed(2)}</div>
-                  <Badge variant="outline" className="text-[9px] uppercase border-emerald-500/40 text-emerald-400 bg-emerald-500/10">
-                    {tx.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Login Screen Switcher */}
       {/** 

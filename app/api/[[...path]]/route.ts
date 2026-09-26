@@ -359,6 +359,35 @@ async function handler(request, ctx) {
         // mask phones
         return json(rows.map(r => ({ ...r, phone_number: maskPhone(r.phone_number) })));
       }
+
+      // POST /api/raffles/:slug/track (tracking des vues et partages)
+      if (segs.length === 3 && segs[2] === 'track' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const { type } = body || {};
+        const slug = segs[1];
+
+        if (type === 'view') {
+          const row = await one(`
+            UPDATE raffles 
+            SET views_count = COALESCE(views_count, 0) + 1 
+            WHERE slug = $1 
+            RETURNING views_count
+          `, [slug]);
+          return json({ success: true, views_count: row?.views_count || 1 });
+        }
+
+        if (type === 'share') {
+          const row = await one(`
+            UPDATE raffles 
+            SET shares_count = COALESCE(shares_count, 0) + 1 
+            WHERE slug = $1 
+            RETURNING shares_count
+          `, [slug]);
+          return json({ success: true, shares_count: row?.shares_count || 1 });
+        }
+
+        return err('Type de tracking invalide (view ou share attendu)', 400);
+      }
     }
 
     // -------- PAYMENT -------
