@@ -1,7 +1,7 @@
 {
   "name": "Punchy",
   "short_name": "Punchy",
-  "description": "Participez aux rounds avec vos punches à 1$. Tirage équitable SHA-256.",
+  "description": "Choisis ton Round, lâche ton Punch et repars avec le gros lot !",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0F172A",
