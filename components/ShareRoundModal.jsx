@@ -30,7 +30,7 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
     ? `${window.location.origin}/raffles/${raffle.slug}`
     : `https://punchy.cd/raffles/${raffle.slug}`;
 
-  const shareText = `🔥 Regarde ce lot exceptionnel sur Punchy : *${raffle.title}* !\n\n🎯 Tente ta chance pour seulement 1$ avec tirage équitable garanti SHA-256 à Kinshasa.\n\n👉 Participe ici : ${currentUrl}`;
+  const shareText = `🔥 Regarde ce lot exceptionnel sur Punchy : *${raffle.title}* !\n\n🎯 Tente ta chance pour seulement 1$.\n\n👉 Participe ici : ${currentUrl}`;
   const encodedShareText = encodeURIComponent(shareText);
   const encodedUrl = encodeURIComponent(currentUrl);
 
