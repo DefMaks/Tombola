@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /profile/
+Disallow: /my-tickets/
+
+Sitemap: https://punchy.cd/sitemap.xml
