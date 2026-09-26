@@ -242,6 +242,20 @@ async function handler(request, ctx) {
 
     // -------- RAFFLES -------
     if (segs[0] === 'raffles') {
+      // Auto-activation à la volée des tombolas programmées dont l'heure de début est passée
+      try {
+        await query(`
+          UPDATE raffles
+          SET status = 'ACTIVE', updated_at = now()
+          WHERE status = 'SCHEDULED'
+            AND (starts_at IS NULL OR starts_at <= now())
+            AND (ends_at IS NULL OR ends_at > now())
+            AND (max_tickets = 0 OR tickets_sold < max_tickets)
+        `);
+      } catch (autoActivateErr: any) {
+        console.warn('Auto-activate raffles background warning:', autoActivateErr?.message);
+      }
+
       // Auto-clôture à la volée des tombolas expirées
       try {
         await query(`
@@ -253,7 +267,7 @@ async function handler(request, ctx) {
               OR (max_tickets > 0 AND tickets_sold >= max_tickets)
             )
         `);
-      } catch (autoCloseErr) {
+      } catch (autoCloseErr: any) {
         console.warn('Auto-close raffles background warning:', autoCloseErr?.message);
       }
 
