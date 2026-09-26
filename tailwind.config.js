@@ -67,6 +67,14 @@ module.exports = {
             'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
             border: 'hsl(var(--sidebar-border))',
             ring: 'hsl(var(--sidebar-ring))'
+          },
+          punchy: {
+            pale: '#F8E8C3',
+            apricot: '#FFE0C0',
+            amber: '#FFF0B0',
+            cream: '#FFFDF5',
+            accent: '#F59E0B',
+            hover: '#D97706',
           }
         },
         borderRadius: {

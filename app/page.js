@@ -533,9 +533,9 @@ export default function HomePage() {
 
   const frequencyTabs = [
     { id: 'ALL', label: 'Tous', count: activeRaffles.length },
-    { id: 'DAILY', label: 'Journaliers', count: activeRaffles.filter(r => r.type === 'DAILY').length },
-    { id: 'WEEKLY', label: 'Hebdomadaires', count: activeRaffles.filter(r => r.type === 'WEEKLY').length },
-    { id: 'MONTHLY', label: 'Mensuels', count: activeRaffles.filter(r => r.type === 'MONTHLY').length },
+    { id: 'DAILY', label: 'Ce jour', count: activeRaffles.filter(r => r.type === 'DAILY').length },
+    { id: 'WEEKLY', label: 'Semaine', count: activeRaffles.filter(r => r.type === 'WEEKLY').length },
+    { id: 'MONTHLY', label: 'Mois', count: activeRaffles.filter(r => r.type === 'MONTHLY').length },
   ];
 
   return (
@@ -555,7 +555,7 @@ export default function HomePage() {
           </Link>
 
           {userProfile?.commune ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
               <MapPin className="h-3 w-3" />
               <span>{userProfile.commune}</span>
             </div>
@@ -599,7 +599,8 @@ export default function HomePage() {
       {/* Active raffles grid */}
       <section className="px-4 pt-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-lg">🔥 Rounds en cours</h2>
+          <h2 className="font-bold text-lg">
+🔥 Rounds en cours</h2>
           <span className="text-xs text-muted-foreground">{filteredActiveRaffles.length} en cours</span>
         </div>
 
@@ -622,7 +623,7 @@ export default function HomePage() {
               className={cn(
                 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
                 scopeFilter === 'CITY'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-cream-600 text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -633,7 +634,7 @@ export default function HomePage() {
               className={cn(
                 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
                 scopeFilter === 'COMMUNE'
-                  ? 'bg-emerald-600 text-white shadow-sm'
+                  ? 'bg-cream-600 text-white shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >

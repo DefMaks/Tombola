@@ -20,14 +20,14 @@ export async function generateMetadata({ params }) {
   if (!raffle) {
     return {
       title: 'Round Tombola | Punchy',
-      description: 'Choisis ton Round, lâche ton Punch pour seulement 1$ et repars avec le gros lot !',
+      description: 'Choisis ton Round, lâche ton Punch et repars avec le gros lot !',
     };
   }
 
   const title = `${raffle.title} - Round Punchy (1$)`;
   const description = raffle.description 
-    ? `${raffle.description.slice(0, 150)}... Tente ta chance pour seulement 1$ ! Tirage équitable certifié SHA-256 à Kinshasa.`
-    : `Tente ta chance pour remporter ${raffle.title} pour seulement 1$ sur Punchy ! Tirage équitable certifié SHA-256 à Kinshasa.`;
+    ? `${raffle.description.slice(0, 150)}... Tente ta chance pour pour décrocher le gros lot à Kinshasa.`
+    : `Tente ta chance pour remporter ${raffle.title} pour seulement 1$ sur Punchy ! `;
   const heroImage = raffle.hero_image_url || `${baseUrl}/Punchy-logo-b.png`;
   const pageUrl = `${baseUrl}/raffles/${raffle.slug}`;
 
