@@ -108,7 +108,7 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
         <div className="min-w-0 flex-1 text-left">
           <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Punch à 1$</div>
           <h4 className="font-bold text-sm text-foreground line-clamp-1">{raffle.title}</h4>
-          {/**
+          {/** 
           <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">Tirage équitable certifié SHA-256</p>
           */}
         </div>
