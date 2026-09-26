@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Share2, Copy, Check, MessageCircle, Sparkles, Send, MoreHorizontal } from 'lucide-react';
+import { Share2, Copy, Check, Sparkles, MoreHorizontal } from 'lucide-react';
+import { Telegram, Whatsapp } from 'iconoir-react';
 import { toast } from 'sonner';
 
 export function formatSharesCount(count) {
@@ -107,7 +108,7 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
         <div className="min-w-0 flex-1 text-left">
           <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Punch à 1$</div>
           <h4 className="font-bold text-sm text-foreground line-clamp-1">{raffle.title}</h4>
-          {/** 
+          {/**
           <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">Tirage équitable certifié SHA-256</p>
           */}
         </div>
@@ -120,8 +121,8 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
             onClick={handleWhatsAppShare}
             className="flex flex-col items-center gap-2 group"
           >
-            <div className="w-14 h-14 rounded-2xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center group-hover:bg-[#25D366]/20 transition-colors border border-[#25D366]/20 shadow-sm">
-              <MessageCircle className="h-7 w-7 fill-current" />
+            <div className="w-14 h-14 rounded-2xl bg-punchy-apricot/30 text-punchy-accent flex items-center justify-center group-hover:bg-punchy-apricot/50 transition-colors border border-punchy-apricot/50 shadow-sm">
+              <Whatsapp className="h-7 w-7 fill-current" />
             </div>
             <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground transition-colors">WhatsApp</span>
           </button>
@@ -130,8 +131,8 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
             onClick={handleTelegramShare}
             className="flex flex-col items-center gap-2 group"
           >
-            <div className="w-14 h-14 rounded-2xl bg-[#0088cc]/10 text-[#0088cc] flex items-center justify-center group-hover:bg-[#0088cc]/20 transition-colors border border-[#0088cc]/20 shadow-sm">
-              <Send className="h-6 w-6 fill-current -ml-1 mt-0.5" />
+            <div className="w-14 h-14 rounded-2xl bg-punchy-pale/50 text-punchy-hover flex items-center justify-center group-hover:bg-punchy-pale transition-colors border border-punchy-pale shadow-sm">
+              <Telegram className="h-7 w-7 fill-current -ml-0.5" />
             </div>
             <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground transition-colors">Telegram</span>
           </button>
