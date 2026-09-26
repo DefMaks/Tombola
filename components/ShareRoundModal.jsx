@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Share2, Copy, Check, MessageCircle, ExternalLink, Sparkles, Send } from 'lucide-react';
+import { Share2, Copy, Check, MessageCircle, Sparkles, Send, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function formatSharesCount(count) {
@@ -54,6 +54,12 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
     toast.success('Redirection vers WhatsApp...');
   };
 
+  const handleTelegramShare = () => {
+    registerShare();
+    const telegramUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedShareText}`;
+    window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const handleNativeShare = async () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -72,19 +78,6 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
     } else {
       handleCopyLink();
     }
-  };
-
-  const handleFacebookShare = () => {
-    registerShare();
-    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-    window.open(fbUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
-  };
-
-  const handleTwitterShare = () => {
-    registerShare();
-    const tweetText = encodeURIComponent(`🔥 Gagne ${raffle.title} pour seulement 1$ sur Punchy ! Tirage équitable SHA-256 à Kinshasa 🇨🇩`);
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodedUrl}`;
-    window.open(twitterUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
   };
 
   const handleCopyLink = async () => {
@@ -119,71 +112,61 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
       </div>
 
       {/* Share Channels */}
-      <div className="space-y-2.5 pt-2">
-        {/* WhatsApp Hero Button */}
-        <Button
-          onClick={handleWhatsAppShare}
-          className="w-full h-13 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2.5"
-        >
-          <MessageCircle className="h-5 w-5 fill-white text-emerald-600" />
-          <span>Partager sur WhatsApp</span>
-        </Button>
-
-        {/* Native Mobile Share Drawer */}
-        {hasNativeShare && (
-          <Button
-            onClick={handleNativeShare}
-            variant="outline"
-            className="w-full h-12 rounded-2xl border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold text-sm flex items-center justify-center gap-2"
+      <div className="pt-4 pb-2">
+        <div className="flex justify-center gap-6">
+          <button
+            onClick={handleWhatsAppShare}
+            className="flex flex-col items-center gap-2 group"
           >
-            <Send className="h-4 w-4" />
-            <span>Plus d&apos;applications (SMS, Telegram...)</span>
-          </Button>
-        )}
+            <div className="w-14 h-14 rounded-2xl bg-[#25D366]/10 text-[#25D366] flex items-center justify-center group-hover:bg-[#25D366]/20 transition-colors border border-[#25D366]/20 shadow-sm">
+              <MessageCircle className="h-7 w-7 fill-current" />
+            </div>
+            <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground transition-colors">WhatsApp</span>
+          </button>
 
-        {/* Secondary Social Channels */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <Button
-            onClick={handleFacebookShare}
-            variant="outline"
-            className="h-11 rounded-xl border-border bg-card hover:bg-muted/40 text-xs font-semibold flex items-center justify-center gap-1.5"
+          <button
+            onClick={handleTelegramShare}
+            className="flex flex-col items-center gap-2 group"
           >
-            <ExternalLink className="h-3.5 w-3.5 text-blue-500" />
-            <span>Facebook</span>
-          </Button>
+            <div className="w-14 h-14 rounded-2xl bg-[#0088cc]/10 text-[#0088cc] flex items-center justify-center group-hover:bg-[#0088cc]/20 transition-colors border border-[#0088cc]/20 shadow-sm">
+              <Send className="h-6 w-6 fill-current -ml-1 mt-0.5" />
+            </div>
+            <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground transition-colors">Telegram</span>
+          </button>
 
-          <Button
-            onClick={handleTwitterShare}
-            variant="outline"
-            className="h-11 rounded-xl border-border bg-card hover:bg-muted/40 text-xs font-semibold flex items-center justify-center gap-1.5"
+          <button
+            onClick={hasNativeShare ? handleNativeShare : handleCopyLink}
+            className="flex flex-col items-center gap-2 group"
           >
-            <ExternalLink className="h-3.5 w-3.5 text-sky-400" />
-            <span>X (Twitter)</span>
-          </Button>
+            <div className="w-14 h-14 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center group-hover:bg-muted/80 transition-colors border border-border shadow-sm">
+              <MoreHorizontal className="h-7 w-7" />
+            </div>
+            <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground transition-colors">Autre</span>
+          </button>
         </div>
+      </div>
 
-        {/* Direct Copy Link */}
-        <div className="pt-2">
-          <div className="flex items-center gap-2 p-1.5 pl-3 rounded-2xl border border-border bg-background/60">
-            <span className="text-xs text-muted-foreground truncate flex-1 font-mono select-all text-left">
-              {currentUrl}
-            </span>
-            <Button
-              onClick={handleCopyLink}
-              size="sm"
-              className="h-9 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shrink-0"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5 mr-1" /> Copié
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5 mr-1" /> Copier
-                </>
-              )}
-            </Button>
-          </div>
+      {/* Direct Copy Link */}
+      <div className="pt-4">
+        <div className="flex items-center gap-2 p-1.5 pl-3 rounded-2xl border border-border bg-background/60">
+          <span className="text-xs text-muted-foreground truncate flex-1 font-mono select-all text-left">
+            {currentUrl}
+          </span>
+          <Button
+            onClick={handleCopyLink}
+            size="sm"
+            className="h-9 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shrink-0"
+          >
+            {copied ? (
+              <>
+                <Check className="h-3.5 w-3.5 mr-1" /> Copié
+              </>
+            ) : (
+              <>
+                <Copy className="h-3.5 w-3.5 mr-1" /> Copier
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
