@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -21,13 +21,14 @@ import {
   ArrowLeft,
   Smartphone,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { cn } from '@/lib/utils';
 import { formatDRCPhone } from '@/lib/auth/actions';
 
-export default function MyTicketsPage() {
+function MyTicketsContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') === 'txs' ? 'txs' : 'active';
 
@@ -415,4 +416,18 @@ function statusClass(s) {
     PENDING: 'border-amber-500/40 text-amber-400 bg-amber-500/10', 
     FAILED: 'border-rose-500/40 text-rose-400 bg-rose-500/10' 
   }[s] || 'border-border text-muted-foreground';
+}
+
+export default function MyTicketsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="max-w-lg mx-auto min-h-screen pb-24 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+        </main>
+      }
+    >
+      <MyTicketsContent />
+    </Suspense>
+  );
 }

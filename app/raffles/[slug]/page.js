@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import RaffleDetailClient from './RaffleDetailClient';
 import { one } from '@/lib/db';
+import { Loader2 } from 'lucide-react';
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -59,5 +61,15 @@ export async function generateMetadata({ params }) {
 
 export default async function RafflePage({ params }) {
   const { slug } = await params;
-  return <RaffleDetailClient slug={slug} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <RaffleDetailClient slug={slug} />
+    </Suspense>
+  );
 }
