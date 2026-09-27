@@ -114,10 +114,11 @@ export default function RaffleDetailClient({ slug }) {
     const viewKey = `punchy_view_${slug}`;
     if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
       sessionStorage.setItem(viewKey, '1');
+      const phone = localStorage.getItem('punchy_user_phone');
       fetch(`/api/raffles/${slug}/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'view' }),
+        body: JSON.stringify({ type: 'view', phone_number: phone }),
       }).catch(() => {});
     }
   }, [slug]);

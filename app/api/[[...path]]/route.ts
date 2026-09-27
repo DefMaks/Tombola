@@ -363,30 +363,66 @@ async function handler(request, ctx) {
       // POST /api/raffles/:slug/track (tracking des vues et partages)
       if (segs.length === 3 && segs[2] === 'track' && method === 'POST') {
         const body = await request.json().catch(() => ({}));
-        const { type } = body || {};
+        const { type, phone_number } = body || {};
         const slug = segs[1];
 
+        if (type !== 'view' && type !== 'share') {
+          return err('Type de tracking invalide (view ou share attendu)', 400);
+        }
+
+        const raffle = await one('SELECT id, views_count, shares_count FROM raffles WHERE slug = $1', [slug]);
+        if (!raffle) {
+          return err('Raffle not found', 404);
+        }
+
+        let userId = null;
+        let city = null;
+        let commune = null;
+
+        if (phone_number) {
+          const cleanedPhone = String(phone_number).trim();
+          const user = await one('SELECT id, city, commune FROM users WHERE phone_number = $1', [cleanedPhone]);
+          if (user) {
+            userId = user.id;
+            city = user.city;
+            commune = user.commune;
+          }
+        }
+
+        // Get IP and User-Agent from headers
+        const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '';
+        const userAgent = request.headers.get('user-agent') || '';
+
+        // Double write: update fast counters and insert detailed log
         if (type === 'view') {
-          const row = await one(`
+          await query(`
             UPDATE raffles 
             SET views_count = COALESCE(views_count, 0) + 1 
-            WHERE slug = $1 
-            RETURNING views_count
+            WHERE slug = $1
           `, [slug]);
-          return json({ success: true, views_count: row?.views_count || 1 });
+
+          await query(`
+            INSERT INTO raffle_tracking_logs (raffle_id, user_id, action_type, city, commune, ip_address, user_agent)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `, [raffle.id, userId, 'VIEW', city, commune, ip, userAgent]);
+
+          return json({ success: true, views_count: (raffle.views_count || 0) + 1 });
         }
 
         if (type === 'share') {
-          const row = await one(`
+          await query(`
             UPDATE raffles 
             SET shares_count = COALESCE(shares_count, 0) + 1 
-            WHERE slug = $1 
-            RETURNING shares_count
+            WHERE slug = $1
           `, [slug]);
-          return json({ success: true, shares_count: row?.shares_count || 1 });
-        }
 
-        return err('Type de tracking invalide (view ou share attendu)', 400);
+          await query(`
+            INSERT INTO raffle_tracking_logs (raffle_id, user_id, action_type, city, commune, ip_address, user_agent)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `, [raffle.id, userId, 'SHARE', city, commune, ip, userAgent]);
+
+          return json({ success: true, shares_count: (raffle.shares_count || 0) + 1 });
+        }
       }
     }
 
