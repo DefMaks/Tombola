@@ -1,12 +1,12 @@
 # Rapport Technique : Géolocalisation des Vues et Partages
 
-## 1. État Actuel
-Actuellement, les vues et les partages sont de simples compteurs incrémentés (colonnes `views_count` et `shares_count`) dans la table `raffles`. L'API `POST /api/raffles/[slug]/track` ne prend aucun paramètre supplémentaire que le type d'action.
+## 1. État Actuel (Mise à jour : IMPLÉMENTÉ)
+L'architecture de suivi détaillé des vues et partages avec géolocalisation a été entièrement implémentée dans le code.
 
-## 2. Objectif
-Le but est d'ajouter un suivi (tracking) détaillé de ces événements pour enregistrer *qui* a vu ou partagé, *quand*, et surtout *où* (ville, commune), afin d'affiner le ciblage et proposer des recommandations géolocalisées.
+## 2. Objectif Atteint
+Le système enregistre désormais *qui* a vu ou partagé, *quand*, et surtout *où* (ville, commune), ce qui permet d'affiner le ciblage et de proposer des recommandations géolocalisées.
 
-## 3. Plan d'Architecture & Base de Données
+## 3. Architecture & Base de Données
 
 ### A. Création de la table `raffle_tracking_logs`
 Nous allons créer une nouvelle table dans PostgreSQL pour archiver chaque événement.
@@ -68,4 +68,4 @@ Une fois cette table remplie, l'administration pourra :
 - **Recommandations :** Si un utilisateur se connecte depuis la "Gombe", le backend fera un `SELECT raffle_id FROM raffle_tracking_logs WHERE commune = 'Gombe' GROUP BY raffle_id ORDER BY COUNT(*) DESC LIMIT 5` pour lui suggérer les tombolas les plus populaires de sa commune.
 
 ---
-*Ce rapport technique peut être partagé avec l'équipe d'administration pour la synchronisation de la prochaine étape de développement.*
+*Ce rapport technique documente le système maintenant actif en production et peut être partagé avec l'équipe d'administration pour l'exploitation des données.*

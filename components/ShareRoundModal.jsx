@@ -37,10 +37,11 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
 
   const registerShare = async () => {
     try {
+      const phone = typeof window !== 'undefined' ? localStorage.getItem('punchy_user_phone') : null;
       await fetch(`/api/raffles/${raffle.slug}/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'share' }),
+        body: JSON.stringify({ type: 'share', phone_number: phone }),
       });
       onShareSuccess?.();
     } catch (e) {
