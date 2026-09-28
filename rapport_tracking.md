@@ -3,6 +3,7 @@
 ## 1. État Actuel (Mise à jour : IMPLÉMENTÉ)
 L'architecture de suivi détaillé des vues et partages avec géolocalisation a été entièrement implémentée dans le code.
 
+
 ## 2. Objectif Atteint
 Le système enregistre désormais *qui* a vu ou partagé, *quand*, et surtout *où* (ville, commune), ce qui permet d'affiner le ciblage et de proposer des recommandations géolocalisées.
 
@@ -52,6 +53,7 @@ const registerShare = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+
           type: 'share',
           phone_number: userPhone // Facultatif, permet l'identification
       }),
