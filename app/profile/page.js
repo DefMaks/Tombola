@@ -300,6 +300,7 @@ export default function ProfilePage() {
               </button>
             </div>
 
+            {/**
             <div className="p-2.5 rounded-xl bg-secondary/40 border border-border text-xs flex items-center justify-between">
               <span className="text-muted-foreground flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
@@ -313,6 +314,7 @@ export default function ProfilePage() {
                 <span className="font-bold text-emerald-400">Modifiable</span>
               )}
             </div>
+            */}
           </div>
         ) : (
           <CommuneNoticeBanner

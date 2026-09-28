@@ -55,8 +55,6 @@ code {
     }
 }
 
-
-
 @layer base {
   :root {
         --background: 0 0% 100%;
@@ -92,6 +90,14 @@ code {
         --sidebar-accent-foreground: 240 5.9% 10%;
         --sidebar-border: 220 13% 91%;
         --sidebar-ring: 217.2 91.2% 59.8%;
+
+        /* Palette Punchy (Valeurs HEX & HSL brutes) */
+        --punchy-pale: #F8E8C3;
+        --punchy-apricot: #FFE0C0;
+        --punchy-amber: #FFF0B0;
+        --punchy-cream: #FFFDF5;
+        --punchy-accent: #F59E0B;
+        --punchy-hover: #D97706;
     }
   .dark {
         --background: 222.2 84% 4.9%;
@@ -129,8 +135,6 @@ code {
     }
 }
 
-
-
 @layer base {
   * {
     @apply border-border;
@@ -138,4 +142,67 @@ code {
   body {
     @apply bg-background text-foreground;
     }
+}
+
+/* ==========================================================================
+   Classes utilitaires Punchy (Backgrounds, Textes et Bordures)
+   Garanties sans dépendre des aléas de scan de tailwind.config.js
+   ========================================================================== */
+@layer utilities {
+  /* Arrière-plans */
+  .bg-punchy-pale {
+    background-color: var(--punchy-pale) !important;
+  }
+  .bg-punchy-apricot {
+    background-color: var(--punchy-apricot) !important;
+  }
+  .bg-punchy-amber {
+    background-color: var(--punchy-amber) !important;
+  }
+  .bg-punchy-cream {
+    background-color: var(--punchy-cream) !important;
+  }
+  .bg-punchy-accent {
+    background-color: var(--punchy-accent) !important;
+  }
+  .bg-punchy-hover {
+    background-color: var(--punchy-hover) !important;
+  }
+
+  /* Textes */
+  .text-punchy-pale {
+    color: var(--punchy-pale) !important;
+  }
+  .text-punchy-apricot {
+    color: var(--punchy-apricot) !important;
+  }
+  .text-punchy-amber {
+    color: var(--punchy-amber) !important;
+  }
+  .text-punchy-cream {
+    color: var(--punchy-cream) !important;
+  }
+  .text-punchy-accent {
+    color: var(--punchy-accent) !important;
+  }
+  .text-punchy-hover {
+    color: var(--punchy-hover) !important;
+  }
+
+  /* Bordures */
+  .border-punchy-pale {
+    border-color: var(--punchy-pale) !important;
+  }
+  .border-punchy-apricot {
+    border-color: var(--punchy-apricot) !important;
+  }
+  .border-punchy-amber {
+    border-color: var(--punchy-amber) !important;
+  }
+  .border-punchy-cream {
+    border-color: var(--punchy-cream) !important;
+  }
+  .border-punchy-accent {
+    border-color: var(--punchy-accent) !important;
+  }
 }

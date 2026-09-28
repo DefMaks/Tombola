@@ -536,7 +536,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
         disabled={available <= 0}
         className="w-full h-14 text-base font-bold rounded-2xl shadow-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-900"
       >
-        <Ticket className="h-5 w-5 mr-2" /> {available > 0 ? 'Participer' : 'Sold out'}
+        <Ticket className="h-5 w-5 mr-2" /> {available > 0 ? 'Puncher (Participer)' : 'Sold out'}
       </Button>
 
       <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>

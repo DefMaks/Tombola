@@ -400,7 +400,6 @@ async function handler(request, ctx) {
             SET views_count = COALESCE(views_count, 0) + 1 
             WHERE slug = $1
           `, [slug]);
-
           await query(`
             INSERT INTO raffle_tracking_logs (raffle_id, user_id, action_type, city, commune, ip_address, user_agent)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
