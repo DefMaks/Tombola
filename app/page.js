@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import BottomNav from '@/components/BottomNav';
-import InstallPWABanner from '@/components/InstallPWABanner';
 import AdBlock from '@/components/AdBlock';
 import PalierFireBadges from '@/components/PalierFireBadges';
 import AppLoadingScreen from '@/components/AppLoadingScreen';
@@ -857,7 +856,6 @@ export default function HomePage() {
       </Dialog>
 
       <BottomNav />
-      <InstallPWABanner />
     </main>
   );
 }
