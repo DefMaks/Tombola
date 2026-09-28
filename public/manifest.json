@@ -8,6 +8,10 @@
   "theme_color": "#0F172A",
   "orientation": "portrait",
   "scope": "/",
+  "capture_links": "existing-client-navigate",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
       "src": "/icon-192.png",
