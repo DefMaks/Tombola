@@ -623,6 +623,7 @@ export default function HomePage() {
                 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
                 scopeFilter === 'CITY'
                   ? 'bg-punchy-apricot text-slate-950 shadow-sm'
+
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -634,6 +635,7 @@ export default function HomePage() {
                 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
                 scopeFilter === 'COMMUNE'
                   ? 'bg-punchy-apricot text-slate-950 shadow-sm'
+
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >

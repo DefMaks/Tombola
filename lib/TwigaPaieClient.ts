@@ -21,15 +21,53 @@ const PUNCHY_WEBHOOK_URL =
   'https://punchy.cd/api/webhooks/twigapaie';
 
 /**
- * Normalise les numéros de téléphone pour la RDC au format strict "243XXXXXXXXX"
+ * Normalise les numéros de téléphone selon l'opérateur (format attendu par TwigaPaie)
  */
-function normalizePhone(phone: string): string {
-  let cleaned = phone.trim().replace(/\s+/g, '').replace(/^\+/, '');
+function normalizePhone(phone: string, operator?: string): string {
+  let cleaned = String(phone || '').trim().replace(/[\s\-\+\(\)]/g, '');
+  if (!cleaned) return '';
 
-  if (cleaned.startsWith('0')) {
-    cleaned = '243' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('243') && cleaned.length === 9) {
-    cleaned = '243' + cleaned;
+  // Format simulateur (commence par 1)
+  if (/^1\d{7,11}$/.test(cleaned)) {
+    return cleaned;
+  }
+
+  // Extraction des 9 chiffres locaux RDC
+  let core = cleaned;
+  if (core.startsWith('243')) {
+    core = core.substring(3);
+  }
+  if (core.startsWith('0')) {
+    core = core.substring(1);
+  }
+
+  const opUpper = String(operator || '').toUpperCase();
+
+  // Airtel: 97XXXXXXX, 98XXXXXXX, 99XXXXXXX (9 chiffres, SANS 0, SANS 243)
+  if (opUpper === 'AIRTEL' || /^(97|98|99)/.test(core)) {
+    return core;
+  }
+
+  // Orange Money: 080XXXXXXX, 084XXXXXXX, 085XXXXXXX, 089XXXXXXX (10 chiffres, commence par 0)
+  if (opUpper === 'ORANGE' || /^(80|84|85|89)/.test(core)) {
+    return '0' + core;
+  }
+
+  // Africell: 090XXXXXXX (10 chiffres, commence par 090)
+  if (opUpper === 'AFRICELL' || /^90/.test(core)) {
+    return '0' + core;
+  }
+
+  // Vodacom: 243 + 81/82/83 (12 chiffres)
+  if (opUpper === 'VODACOM' || /^(81|82|83)/.test(core)) {
+    return '243' + core;
+  }
+
+  // Fallback par défaut si l'opérateur n'est pas clair
+  if (core.length === 9) {
+    if (/^(97|98|99)/.test(core)) return core;
+    if (/^(80|84|85|89|90)/.test(core)) return '0' + core;
+    if (/^(81|82|83)/.test(core)) return '243' + core;
   }
 
   return cleaned;
@@ -48,7 +86,7 @@ export class TwigaPaieClient {
    * Initialise un paiement Mobile Money via le Proxy DefMaks
    */
   async initiatePayment(params: InitiatePaymentParams) {
-    const formattedPhone = normalizePhone(params.phoneNumber);
+    const formattedPhone = normalizePhone(params.phoneNumber, params.channel);
 
     const payload = {
       endpoint: '/payments/payment-service',
