@@ -59,7 +59,7 @@ function normalizePhone(phone: string, operator?: string): string {
   }
 
   // Vodacom: 243 + 81/82/83 (12 chiffres)
-  if (opUpper === 'VODACOM' || /^(81|82|83)/.test(core)) {
+  if (opUpper === 'VODACOM' || opUpper === 'MPESA' || opUpper === 'M-PESA' || /^(81|82|83)/.test(core)) {
     return '243' + core;
   }
 

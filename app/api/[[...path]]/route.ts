@@ -457,14 +457,23 @@ async function handler(request, ctx) {
         // Check IS_PROD secret (if false or not 'true', force payment to 10 CDF for testing)
         const isProd = String(process.env.IS_PROD || '').toLowerCase() === 'true' || process.env.IS_PROD === '1';
 
+        const isAfricell = String(operator).toUpperCase() === 'AFRICELL' || /^(090|24390|\+24390|90)/.test(phone_number);
+
         let amount;
         let currency;
 
         if (isProd) {
-          amount = Number(raffle.ticket_price) * qty;
-          currency = raffle.currency || 'USD';
+          if (isAfricell) {
+            // Note TwigaPaie: Africell en RDC n'a pas de route USD (Provider 19 = CDF uniquement, min 2250 CDF)
+            amount = Math.max(2500, Math.round(Number(raffle.ticket_price || 1) * qty * 2800));
+            currency = 'CDF';
+          } else {
+            amount = Number(raffle.ticket_price) * qty;
+            currency = raffle.currency || 'USD';
+          }
         } else {
-          amount = 10;
+          // Mode test: 10 CDF pour Airtel/Vodacom/Orange, 2500 CDF pour Africell (qui exige >= 2250 CDF)
+          amount = isAfricell ? 2500 : 10;
           currency = 'CDF';
         }
 
