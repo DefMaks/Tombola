@@ -3,6 +3,7 @@ import { query, one, many } from '@/lib/db';
 import { initiateTwigaPayment, checkTwigaPaymentStatus, isTwigaPaymentSuccess, isTwigaPaymentFailed } from '@/lib/twiga';
 import { hashPassword } from '@/lib/auth/password';
 import { sendContactEmail } from '@/lib/email.functions';
+import { sendAfricasTalkingSms } from '@/lib/sms';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -83,28 +84,13 @@ async function handler(request, ctx) {
         let messageId = null;
 
         try {
-          const apiKey = process.env.AFRICASTALKING_API_KEY || 'atsk_06aa917ec68241927c325268afda901f66c3480778fcbdcacb59b72f33a44a4edb62cce6';
-          const username = process.env.AFRICASTALKING_USERNAME || 'DefMaks';
-          const senderId = process.env.AFRICASTALKING_SENDER_ID;
-          const bodyParams = new URLSearchParams();
-          bodyParams.append('username', username);
-          bodyParams.append('to', cleaned);
-          bodyParams.append('message', `Votre code de verification Punchy est : ${otpCode}. Expire dans 10 minutes.`);
-          if (senderId) bodyParams.append('from', senderId);
-
-          const response = await fetch('https://api.africastalking.com/version1/messaging', {
-            method: 'POST',
-            headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded', apiKey },
-            body: bodyParams.toString(),
+          const smsResult = await sendAfricasTalkingSms({
+            to: cleaned,
+            message: `Votre code de verification Punchy est : ${otpCode}. Expire dans 10 minutes.`,
           });
-          const data = await response.json();
-          if (response.ok) {
-            const recipient = data?.SMSMessageData?.Recipients?.[0];
-            smsSent = recipient?.status === 'Success' || recipient?.statusCode === 100;
-            messageId = recipient?.messageId;
-          } else {
-            smsError = data?.errorMessage || 'Erreur API SMS';
-          }
+          smsSent = smsResult.success;
+          messageId = smsResult.messageId || null;
+          smsError = smsResult.error || null;
         } catch (err) {
           smsError = err.message;
         }

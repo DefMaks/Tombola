@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Trophy, LogOut, MessageSquarePlus, Camera, Loader2, CheckCircle2, Clock, ShieldCheck, Ticket, Receipt, Edit3, KeyRound, Sparkles, ArrowRight, Eye, EyeOff, Info, MapPin, Building2, Lock } from 'lucide-react';
+import { User, Phone, Trophy, LogOut, MessageSquarePlus, Camera, Loader2, CheckCircle2, Clock, ShieldCheck, Ticket, Receipt, Edit3, KeyRound, Sparkles, ArrowRight, Eye, EyeOff, Info, MapPin, Building2, Lock, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -365,6 +365,28 @@ export default function ProfilePage() {
             </div>
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+        </Link>
+
+        <Link 
+          href="/admin/notifications" 
+          prefetch={true} 
+          className="flex items-center gap-3.5 p-3.5 bg-card border border-amber-500/30 rounded-2xl hover:border-amber-400 transition-all shadow-sm group bg-gradient-to-r from-amber-500/5 to-transparent"
+        >
+          <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-400 shrink-0 group-hover:bg-amber-500/25 transition-colors">
+            <Bell className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-foreground">Centre de Notifications Push</span>
+              <Badge variant="outline" className="text-[9px] font-black border-amber-500/40 text-amber-400 bg-amber-500/10 px-1.5 py-0">
+                ADMIN
+              </Badge>
+            </div>
+            <div className="text-xs text-muted-foreground truncate">
+              Quotas 08h30/18h30, 12 modèles, simulateur smartphone & envois flash
+            </div>
+          </div>
+          <ArrowRight className="h-4 w-4 text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
         </Link>
 
         <QuickLink href="/info" icon={Info} label="Information, Termes & Support" />
