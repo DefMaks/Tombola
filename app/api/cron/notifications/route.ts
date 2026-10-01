@@ -10,6 +10,8 @@ import {
 } from '@/lib/notifications';
 import { query } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const settings = await getPushSettings();
@@ -70,6 +72,8 @@ export async function GET(req: NextRequest) {
       title: finalTitle,
       body: finalBody,
       url: finalUrl,
+      icon: '/P-punchy-emblem.png',
+      badge: '/P-punchy-emblem.png',
     });
 
     if (targetSlot === 'morning') {

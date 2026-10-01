@@ -14,6 +14,8 @@ import {
 } from '@/lib/notifications';
 import { query } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const settings = await getPushSettings();
@@ -122,6 +124,8 @@ export async function POST(req: NextRequest) {
         title: finalTitle,
         body: finalBody,
         url: finalUrl,
+        icon: '/P-punchy-emblem.png',
+        badge: '/P-punchy-emblem.png',
         filter: { target_commune },
       });
 
@@ -197,6 +201,8 @@ export async function POST(req: NextRequest) {
         title: finalTitle,
         body: finalBody,
         url: finalUrl,
+        icon: '/P-punchy-emblem.png',
+        badge: '/P-punchy-emblem.png',
       });
 
       // Update slot sent date
