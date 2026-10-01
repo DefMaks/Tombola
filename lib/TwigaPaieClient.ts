@@ -1,3 +1,4 @@
+// lib/TwigaPaieClient.ts
 export interface InitiatePaymentParams {
   amount: number;
   currency: 'USD' | 'CDF';
