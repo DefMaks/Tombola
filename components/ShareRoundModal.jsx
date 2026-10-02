@@ -120,7 +120,7 @@ export default function ShareRoundModal({ isOpen, onOpenChange, raffle, sharesCo
     return `${window.location.origin}/raffles/${raffle.slug}`;
   };
 
-  const shareText = `Tente ta chance pour gagner ${raffle.prize_name} sur Punchy ! 🎁\n\nParticipe ici : `;
+  const shareText = `Tente ta chance pour gagner ${raffle.title} sur Punchy ! 🎁\n\nParticipe ici : `;
   const shareUrl = getShareUrl();
 
   const handleCopyLink = async () => {
