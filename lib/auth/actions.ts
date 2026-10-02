@@ -102,6 +102,23 @@ export async function signInWithPhoneOtp(
     if (data.token) {
       localStorage.setItem('auth_token', data.token);
     }
+
+    // Auto-activer les notifications pour la session ouverte
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+          subscribeUserToPush({ userPhone: formattedPhone, commune: commune || undefined }).catch(() => {});
+        });
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') {
+            import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+              subscribeUserToPush({ userPhone: formattedPhone, commune: commune || undefined }).catch(() => {});
+            });
+          }
+        }).catch(() => {});
+      }
+    }
   }
 
   return {
@@ -145,6 +162,23 @@ export async function signInWithPassword(rawPhone: string, password: string) {
     if (data.token) {
       localStorage.setItem('auth_token', data.token);
     }
+
+    // Auto-activer les notifications pour la session ouverte
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+          subscribeUserToPush({ userPhone: formattedPhone }).catch(() => {});
+        });
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') {
+            import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+              subscribeUserToPush({ userPhone: formattedPhone }).catch(() => {});
+            });
+          }
+        }).catch(() => {});
+      }
+    }
   }
 
   return {
@@ -162,6 +196,9 @@ export function signOut() {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('user_phone');
     localStorage.removeItem('auth_token');
+    import('@/lib/push-client').then(({ unsubscribeUserFromPush }) => {
+      unsubscribeUserFromPush().catch(() => {});
+    });
   }
 }
 

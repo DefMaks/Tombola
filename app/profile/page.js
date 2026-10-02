@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Trophy, LogOut, MessageSquarePlus, Camera, Loader2, CheckCircle2, Clock, ShieldCheck, Ticket, Receipt, Edit3, KeyRound, Sparkles, ArrowRight, Eye, EyeOff, Info, MapPin, Building2, Lock, Bell } from 'lucide-react';
+import { User, Phone, Trophy, LogOut, MessageSquarePlus, Camera, Loader2, CheckCircle2, Clock, ShieldCheck, Ticket, Receipt, Edit3, KeyRound, Sparkles, ArrowRight, Eye, EyeOff, Info, MapPin, Building2, Lock, Bell, Share2, Trash2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +15,9 @@ import { cn } from '@/lib/utils';
 import PhoneAuthModal from '@/components/PhoneAuthModal';
 import CommuneSelectModal from '@/components/CommuneSelectModal';
 import CommuneNoticeBanner from '@/components/CommuneNoticeBanner';
+import ShareAppModal from '@/components/ShareAppModal';
+import NotificationManagerCard from '@/components/NotificationManagerCard';
+import DeleteAccountModal from '@/components/DeleteAccountModal';
 import { KINSHASA_COMMUNES } from '@/lib/constants/communes';
 import { formatDRCPhone, signInWithPassword, sendPhoneOtp, signInWithPhoneOtp } from '@/lib/auth/actions';
 
@@ -40,6 +43,8 @@ export default function ProfilePage() {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isCommuneModalOpen, setIsCommuneModalOpen] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [fullNameInput, setFullNameInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
@@ -326,6 +331,11 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* Alertes & Notifications Push */}
+      <section className="px-4 pt-6">
+        <NotificationManagerCard userPhone={savedPhone} commune={userProfile?.commune} />
+      </section>
+
       {/* Quick links & History */}
       <section className="px-4 pt-6 space-y-2">
         <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider mb-2">Raccourcis & Securité</h3>
@@ -367,29 +377,46 @@ export default function ProfilePage() {
           <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
         </Link>
 
-        <Link 
-          href="/admin/notifications" 
-          prefetch={true} 
-          className="flex items-center gap-3.5 p-3.5 bg-card border border-amber-500/30 rounded-2xl hover:border-amber-400 transition-all shadow-sm group bg-gradient-to-r from-amber-500/5 to-transparent"
+        {/* Bouton Partager Punchy */}
+        <button
+          type="button"
+          onClick={() => setShowShareModal(true)}
+          className="w-full flex items-center gap-3.5 p-3.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl hover:border-amber-400 transition-all shadow-sm group text-left"
         >
-          <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-400 shrink-0 group-hover:bg-amber-500/25 transition-colors">
-            <Bell className="h-5 w-5" />
+          <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 group-hover:scale-105 transition-transform">
+            <Share2 className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-foreground">Centre de Notifications Push</span>
+              <span className="font-bold text-sm text-foreground">Partager l&apos;application Punchy</span>
               <Badge variant="outline" className="text-[9px] font-black border-amber-500/40 text-amber-400 bg-amber-500/10 px-1.5 py-0">
-                ADMIN
+                INVITER
               </Badge>
             </div>
             <div className="text-xs text-muted-foreground truncate">
-              Quotas 08h30/18h30, 12 modèles, simulateur smartphone & envois flash
+              WhatsApp, QR Code, AirDrop, Bluetooth &amp; SMS
             </div>
           </div>
           <ArrowRight className="h-4 w-4 text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
-        </Link>
+        </button>
 
         <QuickLink href="/info" icon={Info} label="Information, Termes & Support" />
+        <QuickLink href="/info?tab=delete_account" icon={ShieldAlert} label="Politique de Suppression de Compte & Données" />
+
+        {/* Bouton de Suppression de Compte */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setIsDeleteModalOpen(true)}
+            className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 hover:border-rose-500/40 text-rose-400 transition text-xs font-semibold group cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <Trash2 className="h-4 w-4 shrink-0 text-rose-400 group-hover:scale-110 transition-transform" />
+              <span>Supprimer mon compte et mes données</span>
+            </div>
+            <ArrowRight className="h-3.5 w-3.5 text-rose-400/70 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        </div>
       </section>
 
       {/* Login Screen Switcher */}
@@ -498,6 +525,24 @@ export default function ProfilePage() {
         lockedUntil={userProfile?.commune_locked_until}
         phone={savedPhone}
         onSuccess={() => refetchProfile()}
+      />
+
+      {/* Modal Partage & Inviter un Ami */}
+      <ShareAppModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+      />
+
+      {/* Modal Suppression de Compte */}
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        phone={savedPhone}
+        onSuccess={() => {
+          setSavedPhone('');
+          setPhone('');
+          refetchProfile();
+        }}
       />
 
       <BottomNav />

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Ticket, Flame, Clock, ChevronRight, ChevronLeft, Sparkles, Trophy, Star, ArrowRight, Quote, ExternalLink, MapPin, Building2 } from 'lucide-react';
+import { Ticket, Flame, Clock, ChevronRight, ChevronLeft, Sparkles, Trophy, Star, ArrowRight, Quote, ExternalLink, MapPin, Building2, Share2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import AdBlock from '@/components/AdBlock';
 import PalierFireBadges from '@/components/PalierFireBadges';
 import AppLoadingScreen from '@/components/AppLoadingScreen';
 import CommuneNoticeBanner from '@/components/CommuneNoticeBanner';
+import ShareAppModal from '@/components/ShareAppModal';
 import { cn } from '@/lib/utils';
 
 const TYPE_STYLE = {
@@ -428,6 +429,7 @@ export default function HomePage() {
   const [scopeFilter, setScopeFilter] = useState('ALL'); // ALL, CITY, COMMUNE
   const [selectedTestimonial, setSelectedTestimonial] = useState(null);
   const [savedPhone, setSavedPhone] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     const p = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
@@ -544,7 +546,7 @@ export default function HomePage() {
 
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-4 py-2.5 flex items-center justify-between">
           <Link href="/" prefetch={true} className="flex items-center gap-2.5 group">
             <img
               src="/P-punchy-emblem.png"
@@ -553,17 +555,29 @@ export default function HomePage() {
             />
           </Link>
 
-          {userProfile?.commune ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
-              <MapPin className="h-3 w-3" />
-              <span>{userProfile.commune}</span>
-            </div>
-          ) : savedPhone ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
-              <MapPin className="h-3 w-3" />
-              <span>Kinshasa</span>
-            </div>
-          ) : null}
+          <div className="flex items-center gap-2">
+            {userProfile?.commune ? (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                <MapPin className="h-3 w-3" />
+                <span>{userProfile.commune}</span>
+              </div>
+            ) : savedPhone ? (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+                <MapPin className="h-3 w-3" />
+                <span>Kinshasa</span>
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => setShowShareModal(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold transition shadow-sm active:scale-95"
+              title="Partager l'application"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              <span>Partager</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -856,6 +870,12 @@ export default function HomePage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal Partager l'Application */}
+      <ShareAppModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+      />
 
       <BottomNav />
     </main>

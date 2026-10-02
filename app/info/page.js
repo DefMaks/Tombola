@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,9 @@ import {
   Loader2, 
   CheckCircle2, 
   ShieldCheck, 
-  Building2
+  Building2,
+  Trash2,
+  ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +25,17 @@ import AdBlock from '@/components/AdBlock';
 import { toast } from 'sonner';
 
 export default function InfoPage() {
-  const [activeTab, setActiveTab] = useState('about'); // 'about', 'terms', 'contact'
+  const [activeTab, setActiveTab] = useState('about'); // 'about', 'terms', 'delete_account', 'contact'
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam && ['about', 'terms', 'delete_account', 'contact'].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
 
   // Contact Form State
   const [form, setForm] = useState({
@@ -115,44 +127,57 @@ export default function InfoPage() {
         <AdBlock zone="inner" sources={["SPB", "NDB"]} />
 
         {/* Tab Switcher Buttons */}
-        <div className="grid grid-cols-3 gap-1 bg-muted p-1 rounded-2xl border border-border">
+        <div className="grid grid-cols-4 gap-1 bg-muted p-1 rounded-2xl border border-border">
           <button
             type="button"
             onClick={() => setActiveTab('about')}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
               activeTab === 'about'
                 ? 'bg-amber-500 text-slate-950 shadow-md scale-[1.02]'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Info className="h-4 w-4 shrink-0" />
-            <span>À propos</span>
+            <span className="truncate">À propos</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('terms')}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
               activeTab === 'terms'
                 ? 'bg-amber-500 text-slate-950 shadow-md scale-[1.02]'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <FileText className="h-4 w-4 shrink-0" />
-            <span>Conditions</span>
+            <span className="truncate">Conditions</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('delete_account')}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
+              activeTab === 'delete_account'
+                ? 'bg-rose-500 text-white shadow-md scale-[1.02]'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Trash2 className="h-4 w-4 shrink-0" />
+            <span className="truncate">Suppression</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('contact')}
-            className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
               activeTab === 'contact'
                 ? 'bg-amber-500 text-slate-950 shadow-md scale-[1.02]'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Mail className="h-4 w-4 shrink-0" />
-            <span>Contact</span>
+            <span className="truncate">Contact</span>
           </button>
         </div>
 
@@ -274,7 +299,104 @@ export default function InfoPage() {
             </motion.div>
           )}
 
-          {/* TAB 3: FORMULAIRE DE CONTACT */}
+          {/* TAB 3: POLITIQUE DE SUPPRESSION DE COMPTE */}
+          {activeTab === 'delete_account' && (
+            <motion.div
+              key="delete_account"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-4"
+            >
+              <div className="bg-card border border-border rounded-3xl p-5 shadow-sm space-y-4">
+                <div className="flex items-center gap-3 border-b border-border pb-3">
+                  <div className="p-2.5 rounded-2xl bg-rose-500/10 text-rose-500">
+                    <Trash2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="font-extrabold text-lg text-foreground">
+                      Politique de Suppression du Compte &amp; Vie Privée
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      Engagement de confidentialité &amp; Droit à l&apos;effacement (Punchy / DefMaks SARL)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 text-xs text-muted-foreground leading-relaxed">
+                  <div className="p-3.5 rounded-2xl bg-rose-500/5 border border-rose-500/20 text-foreground space-y-1.5">
+                    <div className="flex items-center gap-2 font-bold text-sm text-rose-400">
+                      <ShieldAlert className="h-4 w-4 shrink-0" />
+                      <span>Votre droit fondamental à l&apos;oubli</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Chez Punchy, vous restez l&apos;unique propriétaire de vos données. Vous pouvez à tout moment demander ou effectuer vous-même la suppression complète de votre compte et de vos données personnelles sans justification requise.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      1. Quelles données sont immédiatement supprimées ?
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1 pl-1 text-xs">
+                      <li>Votre nom complet et vos identifiants de profil.</li>
+                      <li>Votre mot de passe chiffré et vos jetons d&apos;authentification de session.</li>
+                      <li>Vos abonnements aux notifications push (Android, iOS PWA, PC).</li>
+                      <li>Vos préférences géographiques (ville, commune).</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      2. Quelles données sont conservées pour archivage légal ?
+                    </h3>
+                    <p className="text-xs">
+                      Conformément à la législation de la République Démocratique du Congo régissant les jeux de tirage, les loteries et la lutte contre la fraude financière, les enregistrements cryptographiques des transactions de paiement (numéros de référence Mobile Money TwigaPaie / Africa&apos;s Talking) et les graines SHA-256 des tirages passés sont conservés de manière strictement anonymisée à des fins d&apos;audit légal et fiscal.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      3. Comment supprimer votre compte ?
+                    </h3>
+                    <div className="space-y-2 pt-1">
+                      <div className="p-3 rounded-xl bg-slate-900/60 border border-border">
+                        <p className="font-bold text-foreground mb-0.5">Option A : Directement dans l&apos;application (Immédiat)</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Rendez-vous dans l&apos;onglet <strong>Profil</strong> en bas de l&apos;écran, puis dans la section <em>« Paramètres de Confidentialité »</em>, cliquez sur le bouton rouge <strong>« Supprimer mon compte »</strong>.
+                        </p>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-900/60 border border-border">
+                        <p className="font-bold text-foreground mb-0.5">Option B : Par demande au Délégué à la Protection des Données</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Envoyez un e-mail à <a href="mailto:privacy@defmaks.com" className="text-amber-400 underline font-semibold">privacy@defmaks.com</a> ou <a href="mailto:support@defmaks.com" className="text-amber-400 underline font-semibold">support@defmaks.com</a> en mentionnant votre numéro de téléphone. Votre compte sera purgé sous 24 à 48 heures ouvrées.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <p className="text-[11px] text-muted-foreground">
+                      Besoin d&apos;aide immédiate concernant vos données ?
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('contact')}
+                      className="px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground font-bold text-xs transition"
+                    >
+                      Contacter le Support
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB 4: FORMULAIRE DE CONTACT */}
           {activeTab === 'contact' && (
             <motion.div
               key="contact"

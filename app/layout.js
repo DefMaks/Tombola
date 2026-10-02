@@ -7,22 +7,20 @@ export const metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Punchy',
   },
   icons: {
     icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
       { url: '/P-punchy-emblem.png', type: 'image/png' },
-      { url: '/icon.jpg', type: 'image/jpeg' },
     ],
     apple: [
-      { url: '/P-punchy-emblem.png', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
 };
-
-
-// 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s
 
 export const viewport = {
   themeColor: '#0F172A',
@@ -38,10 +36,13 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0F172A" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="Punchy" />
+        <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
         <link rel="icon" href="/P-punchy-emblem.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/P-punchy-emblem.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Punchy" />
       </head>
       <body className="antialiased bg-background text-foreground min-h-screen" suppressHydrationWarning>

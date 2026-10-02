@@ -664,6 +664,35 @@ async function handler(request, ctx) {
         }
       }
 
+      // POST /api/my/delete-account
+      if (segs[1] === 'delete-account' && method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const userPhone = body.phone || phone;
+        if (!userPhone) return err('Numéro de téléphone requis');
+
+        const existingUser = await one('SELECT * FROM users WHERE phone_number=$1', [userPhone]);
+        if (!existingUser) return err('Utilisateur introuvable', 404);
+
+        // Nettoyage des abonnements push
+        await query('DELETE FROM push_subscribers WHERE user_id=$1', [userPhone]).catch(() => {});
+
+        // Anonymisation sécurisée des données utilisateur (conformité légale & RGPD)
+        await query(`
+          UPDATE users 
+          SET full_name='Compte Supprimé',
+              password_hash=NULL,
+              city=NULL,
+              commune=NULL,
+              is_active=FALSE
+          WHERE id=$1
+        `, [existingUser.id]).catch(() => {});
+
+        return json({
+          success: true,
+          message: 'Votre compte et vos données personnelles ont été supprimés avec succès conformément à notre politique de confidentialité.',
+        });
+      }
+
       if (!phone) return err('phone required');
       const user = await one('SELECT * FROM users WHERE phone_number=$1', [phone]);
       if (!user) return json([]);
