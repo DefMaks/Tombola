@@ -2,9 +2,32 @@ import './globals.css';
 import LayoutClient from './layout-client';
 
 export const metadata = {
-  title: 'Punchy',
-  description: 'Participez aux rounds avec vos punches à 1$.',
+  metadataBase: new URL('https://punchyplay.com'),
+  title: 'Punchy | Le Jeu des Vrais Champions',
+  description: 'Participez aux rounds avec vos punches à 1$ et tentez de décrocher la cagnotte.',
   manifest: '/manifest.json',
+  openGraph: {
+    title: 'Punchy | Le Jeu des Vrais Champions',
+    description: 'Participez aux rounds avec vos punches à 1$ et repartez avec la cagnotte.',
+    url: 'https://punchyplay.com',
+    siteName: 'Punchy',
+    images: [
+      {
+        url: '/icon-512.png',
+        width: 512,
+        height: 512,
+        alt: 'Punchy Logo',
+      },
+    ],
+    locale: 'fr_FR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Punchy | Le Jeu des Vrais Champions',
+    description: 'Participez aux rounds avec vos punches à 1$.',
+    images: ['/icon-512.png'],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -33,18 +56,6 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0F172A" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="Punchy" />
-        <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
-        <link rel="icon" href="/P-punchy-emblem.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Punchy" />
-      </head>
       <body className="antialiased bg-background text-foreground min-h-screen" suppressHydrationWarning>
         <LayoutClient>{children}</LayoutClient>
       </body>

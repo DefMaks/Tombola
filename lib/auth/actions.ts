@@ -104,21 +104,23 @@ export async function signInWithPhoneOtp(
     }
 
     // Auto-activer les notifications pour la session ouverte
-    if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        import('@/lib/push-client').then(({ subscribeUserToPush }) => {
-          subscribeUserToPush({ userPhone: formattedPhone, commune: commune || undefined }).catch(() => {});
-        });
-      } else if (Notification.permission === 'default') {
-        Notification.requestPermission().then((perm) => {
-          if (perm === 'granted') {
-            import('@/lib/push-client').then(({ subscribeUserToPush }) => {
-              subscribeUserToPush({ userPhone: formattedPhone, commune: commune || undefined }).catch(() => {});
-            });
-          }
-        }).catch(() => {});
+    try {
+      if ('Notification' in window && 'serviceWorker' in navigator) {
+        if (Notification.permission === 'granted') {
+          import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+            subscribeUserToPush({ userPhone: formattedPhone, commune: commune || undefined }).catch(() => {});
+          }).catch(() => {});
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') {
+              import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+                subscribeUserToPush({ userPhone: formattedPhone, commune: commune || undefined }).catch(() => {});
+              }).catch(() => {});
+            }
+          }).catch(() => {});
+        }
       }
-    }
+    } catch (e) {}
   }
 
   return {
@@ -164,21 +166,23 @@ export async function signInWithPassword(rawPhone: string, password: string) {
     }
 
     // Auto-activer les notifications pour la session ouverte
-    if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        import('@/lib/push-client').then(({ subscribeUserToPush }) => {
-          subscribeUserToPush({ userPhone: formattedPhone }).catch(() => {});
-        });
-      } else if (Notification.permission === 'default') {
-        Notification.requestPermission().then((perm) => {
-          if (perm === 'granted') {
-            import('@/lib/push-client').then(({ subscribeUserToPush }) => {
-              subscribeUserToPush({ userPhone: formattedPhone }).catch(() => {});
-            });
-          }
-        }).catch(() => {});
+    try {
+      if ('Notification' in window && 'serviceWorker' in navigator) {
+        if (Notification.permission === 'granted') {
+          import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+            subscribeUserToPush({ userPhone: formattedPhone }).catch(() => {});
+          }).catch(() => {});
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') {
+              import('@/lib/push-client').then(({ subscribeUserToPush }) => {
+                subscribeUserToPush({ userPhone: formattedPhone }).catch(() => {});
+              }).catch(() => {});
+            }
+          }).catch(() => {});
+        }
       }
-    }
+    } catch (e) {}
   }
 
   return {

@@ -8,34 +8,41 @@ export default function SmartAppBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   useEffect(() => {
-    // Check standalone mode
-    const isStandalone = typeof window !== 'undefined' && (
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.navigator.standalone ||
-      document.referrer.includes('android-app://')
-    );
-    const dismissed = localStorage.getItem('smart_app_banner_dismissed_v4');
+    try {
+      // Check standalone mode
+      const isStandalone = typeof window !== 'undefined' && (
+        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+        window.navigator.standalone ||
+        (typeof document !== 'undefined' && document.referrer && document.referrer.includes('android-app://'))
+      );
+      let dismissed = false;
+      try {
+        dismissed = Boolean(localStorage.getItem('smart_app_banner_dismissed_v4'));
+      } catch (e) {}
 
-    if (isStandalone || dismissed) return;
+      if (isStandalone || dismissed) return;
 
-    // Capture Chrome/Android install prompt
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShow(true);
-    };
+      // Capture Chrome/Android install prompt
+      const handleBeforeInstallPrompt = (e) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+        setShow(true);
+      };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Show banner anyway after a short delay for iOS
-    const timer = setTimeout(() => {
-      setShow(true);
-    }, 1500);
+      // Show banner anyway after a short delay for iOS
+      const timer = setTimeout(() => {
+        setShow(true);
+      }, 1500);
 
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      clearTimeout(timer);
-    };
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        clearTimeout(timer);
+      };
+    } catch (err) {
+      // Prevent crash on restricted environments
+    }
   }, []);
 
   const [showGuide, setShowGuide] = useState(false);

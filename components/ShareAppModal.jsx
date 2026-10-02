@@ -12,10 +12,15 @@ export default function ShareAppModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const origin = window.location.origin;
-      setAppUrl(origin);
+      // Domaine officiel de production
+      const officialDomain = 'https://punchyplay.com';
+      // Si l'utilisateur est sur localhost en développement, utiliser le port local, sinon le domaine de production
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const targetUrl = process.env.NEXT_PUBLIC_APP_URL || (isLocalhost ? window.location.origin : officialDomain);
 
-      QRCode.toDataURL(origin, {
+      setAppUrl(targetUrl);
+
+      QRCode.toDataURL(targetUrl, {
         width: 280,
         margin: 1.5,
         color: {

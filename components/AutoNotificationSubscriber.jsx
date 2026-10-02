@@ -1,18 +1,29 @@
 'use client';
 
 import { useEffect } from 'react';
-import { isPushNotificationSupported, subscribeUserToPush } from '@/lib/push-client';
 
 export default function AutoNotificationSubscriber() {
   useEffect(() => {
-    if (typeof window === 'undefined' || !isPushNotificationSupported()) return;
+    try {
+      if (typeof window === 'undefined') return;
 
-    const phone = localStorage.getItem('user_phone');
-    // Uniquement pour les utilisateurs ayant une session ouverte
-    if (!phone) return;
+      // Vérifier support de Notification en toute sécurité
+      if (!('serviceWorker' in navigator) || !('Notification' in window) || !('PushManager' in window)) {
+        return;
+      }
 
-    if (Notification.permission === 'granted') {
-      subscribeUserToPush({ userPhone: phone }).catch(() => {});
+      const phone = localStorage.getItem('user_phone');
+      if (!phone) return;
+
+      if (window.Notification && Notification.permission === 'granted') {
+        import('@/lib/push-client')
+          .then(({ subscribeUserToPush }) => {
+            subscribeUserToPush({ userPhone: phone }).catch(() => {});
+          })
+          .catch(() => {});
+      }
+    } catch (e) {
+      // Ignorer silencieusement pour éviter tout crash client
     }
   }, []);
 
