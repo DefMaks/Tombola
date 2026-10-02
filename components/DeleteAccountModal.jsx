@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, AlertTriangle, X, Loader2, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
+import { safeStorage } from '@/lib/storage';
 
 export default function DeleteAccountModal({ isOpen, onClose, phone, onSuccess }) {
   const [confirmText, setConfirmText] = useState('');
@@ -32,11 +33,9 @@ export default function DeleteAccountModal({ isOpen, onClose, phone, onSuccess }
       toast.success('Votre compte et vos données personnelles ont été supprimés avec succès.');
       
       // Nettoyage complet du stockage local
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('user_phone');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('punchy_push_enabled');
-      }
+      safeStorage.removeItem('user_phone');
+      safeStorage.removeItem('auth_token');
+      safeStorage.removeItem('punchy_push_enabled');
 
       onClose();
       if (onSuccess) onSuccess();

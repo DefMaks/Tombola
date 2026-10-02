@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { safeStorage } from '@/lib/storage';
 
 /**
  * Standardize DRC phone numbers to strict E.164 format (+243XXXXXXXXX)
@@ -96,21 +97,10 @@ export async function signInWithPhoneOtp(
     throw new Error(data.error || 'Code OTP invalide ou expiré');
   }
 
-  // Store authenticated phone in localStorage
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('user_phone', formattedPhone);
-    if (data.token) {
-      localStorage.setItem('auth_token', data.token);
-    }
-
-    // Auto-activer les notifications pour la session ouverte si déjà autorisées
-    try {
-      if ('Notification' in window && 'serviceWorker' in navigator && Notification.permission === 'granted') {
-        import('@/lib/push-client').then(({ subscribeUserToPush }) => {
-          subscribeUserToPush({ userPhone: formattedPhone, commune: commune || undefined }).catch(() => {});
-        }).catch(() => {});
-      }
-    } catch (e) {}
+  // Store authenticated phone in safeStorage
+  safeStorage.setItem('user_phone', formattedPhone);
+  if (data.token) {
+    safeStorage.setItem('auth_token', data.token);
   }
 
   return {
@@ -149,20 +139,9 @@ export async function signInWithPassword(rawPhone: string, password: string) {
     throw new Error(data.error || 'Identifiants incorrects');
   }
 
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('user_phone', formattedPhone);
-    if (data.token) {
-      localStorage.setItem('auth_token', data.token);
-    }
-
-    // Auto-activer les notifications pour la session ouverte si déjà autorisées
-    try {
-      if ('Notification' in window && 'serviceWorker' in navigator && Notification.permission === 'granted') {
-        import('@/lib/push-client').then(({ subscribeUserToPush }) => {
-          subscribeUserToPush({ userPhone: formattedPhone }).catch(() => {});
-        }).catch(() => {});
-      }
-    } catch (e) {}
+  safeStorage.setItem('user_phone', formattedPhone);
+  if (data.token) {
+    safeStorage.setItem('auth_token', data.token);
   }
 
   return {
@@ -177,19 +156,13 @@ export async function signInWithPassword(rawPhone: string, password: string) {
  * Sign out current user
  */
 export function signOut() {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('user_phone');
-    localStorage.removeItem('auth_token');
-    import('@/lib/push-client').then(({ unsubscribeUserFromPush }) => {
-      unsubscribeUserFromPush().catch(() => {});
-    });
-  }
+  safeStorage.removeItem('user_phone');
+  safeStorage.removeItem('auth_token');
 }
 
 /**
- * Retrieve current user phone from localStorage
+ * Retrieve current user phone from safeStorage
  */
 export function getCurrentUserPhone(): string {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem('user_phone') || '';
+  return safeStorage.getItem('user_phone') || '';
 }

@@ -17,6 +17,7 @@ import AppLoadingScreen from '@/components/AppLoadingScreen';
 import CommuneNoticeBanner from '@/components/CommuneNoticeBanner';
 import ShareAppModal from '@/components/ShareAppModal';
 import { cn } from '@/lib/utils';
+import { safeStorage } from '@/lib/storage';
 
 const TYPE_STYLE = {
   DAILY: { label: 'Journalier', className: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
@@ -432,10 +433,8 @@ export default function HomePage() {
   const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
-    try {
-      const p = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
-      if (p) setSavedPhone(p);
-    } catch (e) {}
+    const p = safeStorage.getItem('user_phone');
+    if (p) setSavedPhone(p);
   }, []);
 
   // Fetch logged in user profile (for commune info & locking)

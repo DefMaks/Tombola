@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Plus } from 'lucide-react';
+import { safeStorage } from '@/lib/storage';
 
 export default function SmartAppBanner() {
   const [show, setShow] = useState(false);
@@ -15,10 +16,7 @@ export default function SmartAppBanner() {
         window.navigator.standalone ||
         (typeof document !== 'undefined' && document.referrer && document.referrer.includes('android-app://'))
       );
-      let dismissed = false;
-      try {
-        dismissed = Boolean(localStorage.getItem('smart_app_banner_dismissed_v4'));
-      } catch (e) {}
+      const dismissed = Boolean(safeStorage.getItem('smart_app_banner_dismissed_v4'));
 
       if (isStandalone || dismissed) return;
 
@@ -70,7 +68,7 @@ export default function SmartAppBanner() {
   };
 
   const dismiss = () => {
-    localStorage.setItem('smart_app_banner_dismissed_v4', '1');
+    safeStorage.setItem('smart_app_banner_dismissed_v4', '1');
     setShow(false);
   };
 

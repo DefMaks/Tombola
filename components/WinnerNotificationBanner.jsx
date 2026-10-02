@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { safeStorage } from '@/lib/storage';
 
 const UPLOADCARE_PUB_KEY = process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || '46beee9be2df550b8604';
 
@@ -52,13 +53,11 @@ export default function WinnerNotificationBanner() {
   const [photoUrl, setPhotoUrl] = useState('');
   const fileInputRef = useRef(null);
 
-  // Sync user phone from localStorage
+  // Sync user phone from storage
   useEffect(() => {
     const checkPhone = () => {
-      try {
-        const saved = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
-        if (saved) setUserPhone(saved);
-      } catch (e) {}
+      const saved = safeStorage.getItem('user_phone');
+      if (saved) setUserPhone(saved);
     };
 
     checkPhone();

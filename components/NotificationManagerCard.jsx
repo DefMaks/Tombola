@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { safeStorage } from '@/lib/storage';
 import {
   isPushNotificationSupported,
   getNotificationPermissionState,
@@ -15,20 +16,12 @@ export default function NotificationManagerCard({ userPhone = null, commune = nu
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!userPhone) return;
-
     try {
       if (typeof window !== 'undefined' && 'Notification' in window) {
-        const perm = Notification.permission;
-        if (perm === 'granted') {
-          setIsEnabled(true);
-          subscribeUserToPush({ userPhone, commune }).catch(() => {});
-        } else {
-          setIsEnabled(false);
-        }
+        setIsEnabled(Notification.permission === 'granted' && Boolean(safeStorage.getItem('punchy_push_enabled')));
       }
     } catch (e) {}
-  }, [userPhone, commune]);
+  }, [userPhone]);
 
   const handleToggle = async () => {
     if (!isPushNotificationSupported()) {

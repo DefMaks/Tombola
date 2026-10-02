@@ -27,6 +27,7 @@ import {
 import BottomNav from '@/components/BottomNav';
 import { cn } from '@/lib/utils';
 import { formatDRCPhone } from '@/lib/auth/actions';
+import { safeStorage } from '@/lib/storage';
 
 function MyTicketsContent() {
   const searchParams = useSearchParams();
@@ -42,10 +43,10 @@ function MyTicketsContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('user_phone');
-    const token = localStorage.getItem('auth_token');
+    const saved = safeStorage.getItem('user_phone');
+    const token = safeStorage.getItem('auth_token');
     if (!token) {
-      localStorage.removeItem('user_phone');
+      safeStorage.removeItem('user_phone');
       setSavedPhone('');
       setPhone('');
       return;
@@ -78,7 +79,7 @@ function MyTicketsContent() {
   const save = () => {
     const formatted = formatDRCPhone(phone);
     if (formatted) {
-      localStorage.setItem('user_phone', formatted);
+      safeStorage.setItem('user_phone', formatted);
       setPhone(formatted);
       setSavedPhone(formatted);
     }

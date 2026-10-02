@@ -28,6 +28,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import BottomNav from '@/components/BottomNav';
 import PhoneAuthModal from '@/components/PhoneAuthModal';
 import PalierFireBadges from '@/components/PalierFireBadges';
+import { safeStorage } from '@/lib/storage';
 import AdBlock from '@/components/AdBlock';
 import ImageLightbox from '@/components/ImageLightbox';
 import ShareRoundModal, { formatSharesCount } from '@/components/ShareRoundModal';
@@ -112,9 +113,9 @@ export default function RaffleDetailClient({ slug }) {
   useEffect(() => {
     if (!slug) return;
     const viewKey = `punchy_view_${slug}`;
-    if (typeof window !== 'undefined' && !sessionStorage.getItem(viewKey)) {
-      sessionStorage.setItem(viewKey, '1');
-      const phone = localStorage.getItem('punchy_user_phone');
+    if (!safeStorage.getItem(viewKey)) {
+      safeStorage.setItem(viewKey, '1');
+      const phone = safeStorage.getItem('punchy_user_phone');
       fetch(`/api/raffles/${slug}/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -398,7 +399,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
+    const saved = safeStorage.getItem('user_phone');
     if (saved) {
       let clean = saved.replace(/\D/g, '');
       if (clean.startsWith('243')) clean = clean.slice(3);
@@ -508,7 +509,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
       return data;
     },
     onSuccess: (data) => {
-      localStorage.setItem('user_phone', data.formattedPhone || fullPhone);
+      safeStorage.setItem('user_phone', data.formattedPhone || fullPhone);
       setTx(data.transaction);
       setIsProdMode(data.is_prod ?? true);
       setStep('ussd');
@@ -520,7 +521,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
   const reset = () => { setStep('form'); setTx(null); setTickets([]); };
 
   const handleTriggerClick = () => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
+    const saved = safeStorage.getItem('user_phone');
     if (!saved) {
       onRequireAuth?.();
     } else {

@@ -20,6 +20,7 @@ import NotificationManagerCard from '@/components/NotificationManagerCard';
 import DeleteAccountModal from '@/components/DeleteAccountModal';
 import { KINSHASA_COMMUNES } from '@/lib/constants/communes';
 import { formatDRCPhone, signInWithPassword, sendPhoneOtp, signInWithPhoneOtp } from '@/lib/auth/actions';
+import { safeStorage } from '@/lib/storage';
 
 const UPLOADCARE_PUB_KEY = process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY || '46beee9be2df550b8604';
 
@@ -51,10 +52,10 @@ export default function ProfilePage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-    if (!token && typeof window !== 'undefined') {
-      localStorage.removeItem('user_phone');
+    const saved = safeStorage.getItem('user_phone');
+    const token = safeStorage.getItem('auth_token');
+    if (!token) {
+      safeStorage.removeItem('user_phone');
       setSavedPhone('');
       setPhone('');
       return;
@@ -149,7 +150,7 @@ export default function ProfilePage() {
 
   const handleVerifyOtp = async () => {
     const formatted = formatDRCPhone(phone);
-    localStorage.setItem('user_phone', formatted);
+    safeStorage.setItem('user_phone', formatted);
     setSavedPhone(formatted);
     toast.success('Connexion réussie !');
   };
@@ -262,7 +263,7 @@ export default function ProfilePage() {
               <div className="text-xs text-amber-200/80 font-mono">{savedPhone}</div>
             </div>
             <button
-              onClick={() => { localStorage.removeItem('user_phone'); setSavedPhone(''); setPhone(''); setOtpSent(false); }}
+              onClick={() => { safeStorage.removeItem('user_phone'); safeStorage.removeItem('auth_token'); setSavedPhone(''); setPhone(''); setOtpSent(false); }}
               className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 transition-colors" title="Déconnexion"
             >
               <LogOut className="h-4 w-4" />
@@ -423,7 +424,7 @@ export default function ProfilePage() {
       {/** 
       <section className="px-4 pt-6 pb-4">
         <button
-          onClick={() => { localStorage.removeItem('user_phone'); setSavedPhone(''); setPhone(''); setOtpSent(false); }}
+          onClick={() => { safeStorage.removeItem('user_phone'); setSavedPhone(''); setPhone(''); setOtpSent(false); }}
           className="w-full py-3 px-4 rounded-2xl border border-dashed border-border hover:border-amber-500/50 text-xs font-semibold text-muted-foreground hover:text-amber-400 transition-colors flex items-center justify-center gap-2 bg-card/40"
         >
           <KeyRound className="h-4 w-4" />
