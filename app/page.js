@@ -432,8 +432,10 @@ export default function HomePage() {
   const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
-    const p = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
-    if (p) setSavedPhone(p);
+    try {
+      const p = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
+      if (p) setSavedPhone(p);
+    } catch (e) {}
   }, []);
 
   // Fetch logged in user profile (for commune info & locking)

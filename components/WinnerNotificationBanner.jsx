@@ -55,15 +55,21 @@ export default function WinnerNotificationBanner() {
   // Sync user phone from localStorage
   useEffect(() => {
     const checkPhone = () => {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
-      if (saved) setUserPhone(saved);
+      try {
+        const saved = typeof window !== 'undefined' ? localStorage.getItem('user_phone') : null;
+        if (saved) setUserPhone(saved);
+      } catch (e) {}
     };
 
     checkPhone();
-    window.addEventListener('storage', checkPhone);
+    try {
+      window.addEventListener('storage', checkPhone);
+    } catch (e) {}
     const interval = setInterval(checkPhone, 3000);
     return () => {
-      window.removeEventListener('storage', checkPhone);
+      try {
+        window.removeEventListener('storage', checkPhone);
+      } catch (e) {}
       clearInterval(interval);
     };
   }, []);

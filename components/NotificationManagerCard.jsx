@@ -17,24 +17,17 @@ export default function NotificationManagerCard({ userPhone = null, commune = nu
   useEffect(() => {
     if (!userPhone) return;
 
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      const perm = Notification.permission;
-      if (perm === 'granted') {
-        setIsEnabled(true);
-        // Synchronisation automatique en arrière-plan pour la session active
-        subscribeUserToPush({ userPhone, commune }).catch(() => {});
-      } else if (perm === 'default') {
-        // Active par défaut dès que la session est ouverte
-        Notification.requestPermission()
-          .then((newPerm) => {
-            if (newPerm === 'granted') {
-              setIsEnabled(true);
-              subscribeUserToPush({ userPhone, commune }).catch(() => {});
-            }
-          })
-          .catch(() => {});
+    try {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const perm = Notification.permission;
+        if (perm === 'granted') {
+          setIsEnabled(true);
+          subscribeUserToPush({ userPhone, commune }).catch(() => {});
+        } else {
+          setIsEnabled(false);
+        }
       }
-    }
+    } catch (e) {}
   }, [userPhone, commune]);
 
   const handleToggle = async () => {
