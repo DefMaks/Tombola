@@ -774,7 +774,7 @@ export default function HomePage() {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Découvre le(s) prochain(s) round(s) disponible(s).
+                  {filteredUpcomingRaffles.length == 1 ? "Découvre le prochain round disponible." : "Découvre les prochains rounds disponibles."}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {filteredUpcomingRaffles.map((r, i) => (
