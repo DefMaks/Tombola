@@ -101,9 +101,9 @@ function RaffleCard({ raffle, index, isUpcoming: propIsUpcoming = false }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap max-w-[85%]">
               {isUpcoming ? (
-                <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 backdrop-blur-md text-[10px] font-bold flex items-center gap-1 shadow-sm">
-                  <Hourglass className="h-3 w-3 text-amber-400 shrink-0" />
-                  À venir
+                <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/40 backdrop-blur-md text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                  <Hourglass className="h-3 w-3 text-blue-400 shrink-0" />
+                  Bientôt disponible
                 </Badge>
               ) : (
                 <Badge variant="outline" className={cn('backdrop-blur-md text-[10px] font-semibold', t.className)}>{t.label}</Badge>
@@ -129,8 +129,8 @@ function RaffleCard({ raffle, index, isUpcoming: propIsUpcoming = false }) {
             <div className="flex items-center justify-between text-[11px] gap-1">
               <PalierFireBadges count={isUpcoming ? 0 : raffle.tickets_sold} variant="compact" />
               {isUpcoming ? (
-                <span className="flex items-center gap-1 text-[11px] shrink-0 text-amber-400 font-bold">
-                  <Clock className="h-3 w-3 text-amber-400 shrink-0" />
+                <span className="flex items-center gap-1 text-[11px] shrink-0 text-blue-400 font-bold">
+                  <Clock className="h-3 w-3 text-blue-400 shrink-0" />
                   <Countdown targetDate={raffle.starts_at} isUpcoming={true} />
                 </span>
               ) : !isCompleted ? (
@@ -152,8 +152,8 @@ function RaffleCard({ raffle, index, isUpcoming: propIsUpcoming = false }) {
                 )}
               </div>
               {isUpcoming ? (
-                <div className="flex items-center gap-1 text-xs font-bold text-amber-400 group-hover:translate-x-0.5 transition-transform">
-                  <Lock className="h-3.5 w-3.5 text-amber-400/80" /> Bientôt <ChevronRight className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-1 text-xs font-bold text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                  <Lock className="h-3.5 w-3.5 text-blue-400/80" /> Bientôt <ChevronRight className="h-3.5 w-3.5" />
                 </div>
               ) : !isCompleted ? (
                 <div className="flex items-center gap-0.5 text-xs font-bold text-primary group-hover:translate-x-0.5 transition-transform">
@@ -355,9 +355,18 @@ function PerspectiveRaffleCarousel({ raffles }) {
                     )}
                   </div>
 
-                  {/* Badge Droite: Nature du Round */}
-                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md text-amber-400 border border-amber-500/30 text-[10px] font-extrabold shadow-sm">
-                    {getTypeBadgeLabel(raffle.type)}
+                  {/* Badge Droite: Nature du Round ou À venir */}
+                  <div className={cn(
+                    "absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full backdrop-blur-md text-[10px] font-extrabold shadow-sm border",
+                    isUpcoming
+                      ? "bg-blue-600/20 text-blue-400 border-blue-500/40"
+                      : "bg-slate-950/85 text-amber-400 border-amber-500/30"
+                  )}>
+                    {isUpcoming ? (
+                      <><Hourglass className="h-3 w-3" /> Bientôt disponible</>
+                    ) : (
+                      getTypeBadgeLabel(raffle.type)
+                    )}
                   </div>
 
                   {/* Image */}

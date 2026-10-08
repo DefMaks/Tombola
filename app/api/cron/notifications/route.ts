@@ -40,11 +40,60 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (!targetSlot) {
+    // Check for newly launched raffles (starts_at reached within the last hour or so)
+    // We check if we already sent a 'launch' notification for them.
+    const launchedRes = await query(`
+      SELECT * FROM raffles 
+      WHERE (status = 'ACTIVE' OR status = 'SCHEDULED')
+        AND starts_at IS NOT NULL 
+        AND starts_at <= NOW()
+        AND starts_at > NOW() - interval '1 hour'
+    `);
+    const newlyLaunched = launchedRes.rows || [];
+    let launchNotificationsSent = 0;
+
+    for (const raffle of newlyLaunched) {
+      const targetUrl = `/raffles/${raffle.slug}`;
+      const logCheck = await query(`SELECT id FROM push_notifications_logs WHERE slot='launch' AND target_url = $1`, [targetUrl]);
+      
+      if (logCheck.rows.length === 0) {
+        const dispatchResult = await sendWebPushNotification({
+          title: `🚀 Le Round ${raffle.title} est ouvert !`,
+          body: "Le compte à rebours est terminé. Réserve ton punch maintenant avant qu'il ne soit trop tard !",
+          url: targetUrl,
+          icon: '/P-punchy-emblem.png',
+          badge: '/P-punchy-emblem.png',
+          filter: { raffle_slug: raffle.slug }
+        });
+        
+        await createPushLog({
+          slot: 'launch',
+          title: `🚀 Le Round ${raffle.title} est ouvert !`,
+          body: 'Le compte à rebours est terminé...',
+          target_url: targetUrl,
+          audience_type: 'ALERTS_ONLY',
+          target_commune: null,
+          recipients_count: dispatchResult.recipients_count || 0,
+          clicks_count: 0,
+          status: 'SENT',
+        });
+        launchNotificationsSent++;
+      }
+    }
+
+    if (!targetSlot && launchNotificationsSent === 0) {
       return NextResponse.json({
         status: 'IDLE',
         kinshasaTime: kt.formatted,
-        message: 'Hors des créneaux de notification ou quota du jour déjà atteint',
+        message: 'Hors des créneaux de notification, quota du jour atteint, et aucun nouveau round à lancer.',
+      });
+    }
+
+    if (!targetSlot) {
+       return NextResponse.json({
+        status: 'SUCCESS',
+        kinshasaTime: kt.formatted,
+        message: `${launchNotificationsSent} alertes de lancement envoyées.`,
       });
     }
 

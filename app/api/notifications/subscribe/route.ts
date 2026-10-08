@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { endpoint, keys, city, commune, user_id } = body;
+    const { endpoint, keys, city, commune, user_id, raffle_slug } = body;
 
     if (!endpoint || !keys?.p256dh || !keys?.auth) {
       return NextResponse.json({ success: false, error: 'Informations d\'abonnement push incomplètes' }, { status: 400 });
@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       user_id: user_id || null,
       city: city || 'Kinshasa',
       commune: commune || null,
+      raffle_slug: raffle_slug || null,
       user_agent: req.headers.get('user-agent') || '',
     });
 

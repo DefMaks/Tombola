@@ -38,6 +38,7 @@ import ShareRoundModal, { formatSharesCount } from '@/components/ShareRoundModal
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { initiatePayment, confirmPaymentDemo, checkPaymentStatus } from '@/lib/api/payment';
+import { subscribeUserToPush } from '@/lib/push-client';
 
 const OPERATORS = [
   { id: 'MPESA', label: 'M-Pesa', color: 'from-red-500 to-red-700', logo: '', prefixes: '' },
@@ -107,9 +108,9 @@ function UpcomingLockedButton({ startsAt, onUnlock }) {
     <Button
       disabled={true}
       size="lg"
-      className="w-full h-14 text-sm sm:text-base font-bold rounded-2xl shadow-2xl bg-slate-950/95 text-amber-400 border border-amber-500/40 cursor-not-allowed opacity-95 backdrop-blur-md flex items-center justify-center gap-2.5 select-none transition-all"
+      className="w-full h-14 text-sm sm:text-base font-bold rounded-2xl shadow-2xl bg-slate-900/95 text-blue-400 border border-blue-500/40 cursor-not-allowed opacity-95 backdrop-blur-md flex items-center justify-center gap-2.5 select-none transition-all"
     >
-      <Lock className="h-4.5 w-4.5 text-amber-400 shrink-0 animate-pulse" />
+      <Hourglass className="h-5 w-5 text-blue-400 shrink-0 animate-pulse" />
       <span className="font-mono tracking-tight font-black text-sm sm:text-base">
         {formatted ? `Ouvre dans ${formatted}` : "Ouverture imminente..."}
       </span>
@@ -126,6 +127,20 @@ export default function RaffleDetailClient({ slug }) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [localSharesCount, setLocalSharesCount] = useState(null);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribeAlert = async () => {
+    setIsSubscribing(true);
+    try {
+      const phone = safeStorage.getItem('punchy_user_phone') || safeStorage.getItem('user_phone') || null;
+      await subscribeUserToPush({ userPhone: phone, raffleSlug: slug });
+      toast.success("Alerte programmée ! Vous recevrez une notification au lancement.");
+    } catch (err) {
+      toast.error(err.message || "Impossible d'activer les alertes.");
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   const isReadOnly = searchParams.get('readonly') === 'true';
 
@@ -262,8 +277,8 @@ export default function RaffleDetailClient({ slug }) {
                   </Badge>
                 )}
                 {isUpcoming && (
-                  <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm">
-                    <Hourglass className="h-3 w-3 text-amber-400" /> À venir
+                  <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm">
+                    <Hourglass className="h-3 w-3 text-blue-400" /> Bientôt disponible
                   </Badge>
                 )}
                 {isCompleted && (
@@ -301,8 +316,8 @@ export default function RaffleDetailClient({ slug }) {
               </button>
 
               {isUpcoming ? (
-                <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-amber-400" /> Bientôt disponible
+                <span className="text-xs font-bold text-blue-400 bg-blue-600/10 px-2.5 py-0.5 rounded-full border border-blue-500/30 flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-blue-400" /> Bientôt disponible
                 </span>
               ) : isActive ? (
                 <motion.div animate={{ opacity: [0.5, 1] }} transition={{ repeat: Infinity, duration: 1.5 }} className="flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
@@ -385,16 +400,30 @@ export default function RaffleDetailClient({ slug }) {
 
       {/* Floating Action Button */}
       <div className="fixed bottom-16 left-0 right-0 z-30 pointer-events-none">
-        <div className="max-w-lg mx-auto px-4 pb-3 pointer-events-auto">
+        <div className="max-w-lg mx-auto px-4 pb-3 pointer-events-auto space-y-2">
           {isUpcoming ? (
-            <UpcomingLockedButton
-              startsAt={raffle.starts_at}
-              onUnlock={() => {
-                setIsUpcoming(false);
-                qc.invalidateQueries({ queryKey: ['raffle', slug] });
-                qc.invalidateQueries({ queryKey: ['raffle-live', slug] });
-              }}
-            />
+            <>
+              <Button
+                variant="outline"
+                onClick={handleSubscribeAlert}
+                disabled={isSubscribing}
+                className="w-full h-12 rounded-xl border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-bold backdrop-blur-md transition-colors"
+              >
+                {isSubscribing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  "🔔 M'alerter au coup d'envoi"
+                )}
+              </Button>
+              <UpcomingLockedButton
+                startsAt={raffle.starts_at}
+                onUnlock={() => {
+                  setIsUpcoming(false);
+                  qc.invalidateQueries({ queryKey: ['raffle', slug] });
+                  qc.invalidateQueries({ queryKey: ['raffle-live', slug] });
+                }}
+              />
+            </>
           ) : isActive ? (
             <BuyTicketSheet
               raffle={raffle}
