@@ -645,7 +645,7 @@ export default function HomePage() {
       <AdBlock zone="home" sources={["SPB", "NDB"]} />
 
       {/* Featured raffles 3D Perspective Carousel */}
-      {activeRaffles.length > 0 && (
+      {allActiveAndUpcoming.length > 0 && (
         <section className="px-4 pt-4">
           <PerspectiveRaffleCarousel
             raffles={
@@ -668,7 +668,6 @@ export default function HomePage() {
           </span>
         </div>
 
-        {/* Territorial Scope Filter (If commune is set or if there are commune raffles) */}
         {userProfile?.commune && (
           <div className="flex items-center gap-1.5 mb-3 bg-secondary/30 p-1 rounded-2xl border border-border/60">
             <button
@@ -680,7 +679,7 @@ export default function HomePage() {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Tous ({typeFilter === 'UPCOMING' ? upcomingRaffles.length : activeRaffles.length})
+              Tous ({typeFilter === 'UPCOMING' ? upcomingRaffles.length : typeFilter === 'ALL' ? allActiveAndUpcoming.length : activeRaffles.length})
             </button>
             <button
               onClick={() => setScopeFilter('CITY')}
@@ -691,7 +690,7 @@ export default function HomePage() {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <Building2 className="h-3 w-3" /> Ville ({typeFilter === 'UPCOMING' ? upcomingRaffles.filter(r => r.scope_type === 'CITY').length : activeRaffles.filter(r => r.scope_type === 'CITY').length})
+              <Building2 className="h-3 w-3" /> Ville ({typeFilter === 'UPCOMING' ? upcomingRaffles.filter(r => r.scope_type === 'CITY').length : typeFilter === 'ALL' ? allActiveAndUpcoming.filter(r => r.scope_type === 'CITY').length : activeRaffles.filter(r => r.scope_type === 'CITY').length})
             </button>
             <button
               onClick={() => setScopeFilter('COMMUNE')}
@@ -702,7 +701,7 @@ export default function HomePage() {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <MapPin className="h-3 w-3" /> {userProfile.commune} ({typeFilter === 'UPCOMING' ? upcomingRaffles.filter(r => r.scope_type === 'COMMUNE').length : activeRaffles.filter(r => r.scope_type === 'COMMUNE').length})
+              <MapPin className="h-3 w-3" /> {userProfile.commune} ({typeFilter === 'UPCOMING' ? upcomingRaffles.filter(r => r.scope_type === 'COMMUNE').length : typeFilter === 'ALL' ? allActiveAndUpcoming.filter(r => r.scope_type === 'COMMUNE').length : activeRaffles.filter(r => r.scope_type === 'COMMUNE').length})
             </button>
           </div>
         )}
@@ -749,16 +748,18 @@ export default function HomePage() {
               {filteredUpcomingRaffles.map((r, i) => <RaffleCard key={r.id} raffle={r} index={i} isUpcoming={true} />)}
             </div>
           )
-        ) : filteredActiveRaffles.length === 0 ? (
+        ) : filteredActiveRaffles.length === 0 && (typeFilter !== 'ALL' || filteredUpcomingRaffles.length === 0) ? (
           <div className="text-center py-8 px-4 rounded-2xl bg-card border border-border">
             <Ticket className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
             <p className="text-sm font-medium text-muted-foreground">Aucun round disponible dans cette catégorie pour le moment.</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3">
-              {filteredActiveRaffles.map((r, i) => <RaffleCard key={r.id} raffle={r} index={i} />)}
-            </div>
+            {filteredActiveRaffles.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {filteredActiveRaffles.map((r, i) => <RaffleCard key={r.id} raffle={r} index={i} />)}
+              </div>
+            )}
 
             {/* Section des rounds à venir sous les rounds en cours */}
             {filteredUpcomingRaffles.length > 0 && (
