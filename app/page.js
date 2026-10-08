@@ -312,7 +312,12 @@ function PerspectiveRaffleCarousel({ raffles }) {
           }
 
           const isCompleted = raffle.status === 'COMPLETED';
-          const pct = timeProgress(raffle.starts_at, raffle.ends_at);
+          const isUpcoming = Boolean(
+            raffle.is_upcoming || 
+            raffle.status === 'SCHEDULED' || 
+            (raffle.starts_at && new Date(raffle.starts_at).getTime() > Date.now())
+          );
+          const pct = isUpcoming ? 0 : timeProgress(raffle.starts_at, raffle.ends_at);
 
           return (
             <div
@@ -555,7 +560,8 @@ export default function HomePage() {
     return false;
   });
 
-  const featuredActiveRaffles = activeRaffles.filter(r => r.is_featured);
+  const allActiveAndUpcoming = [...activeRaffles, ...upcomingRaffles];
+  const featuredRaffles = allActiveAndUpcoming.filter(r => r.is_featured);
   const wonRaffles = raffleList.filter(r => r.status === 'COMPLETED').slice(0, 6);
 
   const filteredActiveRaffles = (typeFilter === 'UPCOMING')
@@ -574,7 +580,7 @@ export default function HomePage() {
   });
 
   const frequencyTabs = [
-    { id: 'ALL', label: 'Tous', count: activeRaffles.length },
+    { id: 'ALL', label: 'Tous', count: activeRaffles.length + upcomingRaffles.length },
     { id: 'DAILY', label: 'Ce jour', count: activeRaffles.filter(r => r.type === 'DAILY').length },
     { id: 'WEEKLY', label: 'Semaine', count: activeRaffles.filter(r => r.type === 'WEEKLY').length },
     { id: 'MONTHLY', label: 'Mois', count: activeRaffles.filter(r => r.type === 'MONTHLY').length },
@@ -643,9 +649,9 @@ export default function HomePage() {
         <section className="px-4 pt-4">
           <PerspectiveRaffleCarousel
             raffles={
-              featuredActiveRaffles.length > 0
-                ? featuredActiveRaffles
-                : activeRaffles
+              featuredRaffles.length > 0
+                ? featuredRaffles
+                : allActiveAndUpcoming
             }
           />
         </section>
