@@ -77,8 +77,8 @@ function Countdown({ endsAt, targetDate, isUpcoming = false }) {
 
 function RaffleCard({ raffle, index, isUpcoming: propIsUpcoming = false }) {
   const isUpcoming = propIsUpcoming || Boolean(
-    raffle.is_upcoming || 
-    raffle.status === 'SCHEDULED' || 
+    raffle.is_upcoming ||
+    raffle.status === 'SCHEDULED' ||
     (raffle.starts_at && new Date(raffle.starts_at).getTime() > Date.now())
   );
   const isCompleted = !isUpcoming && raffle.status === 'COMPLETED';
@@ -103,7 +103,7 @@ function RaffleCard({ raffle, index, isUpcoming: propIsUpcoming = false }) {
               {isUpcoming ? (
                 <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/40 backdrop-blur-md text-[10px] font-bold flex items-center gap-1 shadow-sm">
                   <Hourglass className="h-3 w-3 text-blue-400 shrink-0" />
-                  Bientôt disponible
+                  À venir
                 </Badge>
               ) : (
                 <Badge variant="outline" className={cn('backdrop-blur-md text-[10px] font-semibold', t.className)}>{t.label}</Badge>
@@ -313,8 +313,8 @@ function PerspectiveRaffleCarousel({ raffles }) {
 
           const isCompleted = raffle.status === 'COMPLETED';
           const isUpcoming = Boolean(
-            raffle.is_upcoming || 
-            raffle.status === 'SCHEDULED' || 
+            raffle.is_upcoming ||
+            raffle.status === 'SCHEDULED' ||
             (raffle.starts_at && new Date(raffle.starts_at).getTime() > Date.now())
           );
           const pct = isUpcoming ? 0 : timeProgress(raffle.starts_at, raffle.ends_at);
@@ -514,7 +514,7 @@ export default function HomePage() {
     const slug = t.slug || t.raffle_slug || '';
     const hero_image_url = t.photo_url || t.hero_image_url || 'https://images.unsplash.com/photo-1592286927505-1def25115558?w=800&q=80';
     const type = t.badgeType || t.raffle_type || 'DAILY';
-    
+
     let badgeLabel = t.badgeLabel;
     let badgeType = type;
     if (!badgeLabel) {
@@ -567,11 +567,11 @@ export default function HomePage() {
   const filteredActiveRaffles = (typeFilter === 'UPCOMING')
     ? []
     : activeRaffles.filter(r => {
-        if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
-        if (scopeFilter === 'CITY' && r.scope_type !== 'CITY') return false;
-        if (scopeFilter === 'COMMUNE' && r.scope_type !== 'COMMUNE') return false;
-        return true;
-      });
+      if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
+      if (scopeFilter === 'CITY' && r.scope_type !== 'CITY') return false;
+      if (scopeFilter === 'COMMUNE' && r.scope_type !== 'COMMUNE') return false;
+      return true;
+    });
 
   const filteredUpcomingRaffles = upcomingRaffles.filter(r => {
     if (scopeFilter === 'CITY' && r.scope_type !== 'CITY') return false;
@@ -770,11 +770,11 @@ export default function HomePage() {
                     <h3 className="font-bold text-base">Prochains Rounds (À venir)</h3>
                   </div>
                   <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                    {filteredUpcomingRaffles.length} à venir
+                    {filteredUpcomingRaffles.length}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Tirages programmés avec compte à rebours vers le coup d&apos;envoi.
+                  Découvre le(s) prochain(s) round(s) disponible(s).
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {filteredUpcomingRaffles.map((r, i) => (

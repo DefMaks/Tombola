@@ -5,20 +5,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  Ticket, 
-  Clock, 
-  Zap, 
-  ChevronRight, 
-  Loader2, 
-  Phone, 
-  CheckCircle2, 
-  XCircle, 
-  Trophy, 
-  MapPin, 
-  Images, 
-  ZoomIn, 
+import {
+  ArrowLeft,
+  Ticket,
+  Clock,
+  Zap,
+  ChevronRight,
+  Loader2,
+  Phone,
+  CheckCircle2,
+  XCircle,
+  Trophy,
+  MapPin,
+  Images,
+  ZoomIn,
   Share2,
   Lock,
   Hourglass
@@ -161,7 +161,7 @@ export default function RaffleDetailClient({ slug }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'view', phone_number: phone }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, [slug]);
 
@@ -237,9 +237,9 @@ export default function RaffleDetailClient({ slug }) {
       <div className="relative">
         <div className="aspect-square bg-muted relative overflow-hidden">
           {raffle.hero_image_url && (
-            <img 
-              src={raffle.hero_image_url} 
-              alt={raffle.title} 
+            <img
+              src={raffle.hero_image_url}
+              alt={raffle.title}
               className="w-full h-full object-cover"
             />
           )}
@@ -247,8 +247,8 @@ export default function RaffleDetailClient({ slug }) {
         </div>
 
         {/* Back Button */}
-        <button 
-          onClick={() => router.back()} 
+        <button
+          onClick={() => router.back()}
           className="absolute top-4 left-4 p-2.5 rounded-full bg-black/50 hover:bg-black/75 backdrop-blur-md text-white transition-colors z-10 shadow-lg"
           aria-label="Retour"
         >
@@ -256,8 +256,8 @@ export default function RaffleDetailClient({ slug }) {
         </button>
 
         {/* Floating Quick Share Button */}
-        <button 
-          onClick={() => setShareModalOpen(true)} 
+        <button
+          onClick={() => setShareModalOpen(true)}
           className="absolute top-4 right-4 p-2.5 rounded-full bg-black/50 hover:bg-black/75 backdrop-blur-md text-white transition-colors z-10 shadow-lg flex items-center gap-1.5"
           aria-label="Partager ce Round"
         >
@@ -279,7 +279,7 @@ export default function RaffleDetailClient({ slug }) {
                 )}
                 {isUpcoming && (
                   <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm">
-                    <Hourglass className="h-3 w-3 text-blue-400" /> Bientôt disponible
+                    <Hourglass className="h-3 w-3 text-blue-400" /> À venir
                   </Badge>
                 )}
                 {isCompleted && (
@@ -318,7 +318,7 @@ export default function RaffleDetailClient({ slug }) {
 
               {isUpcoming ? (
                 <span className="text-xs font-bold text-blue-400 bg-blue-600/10 px-2.5 py-0.5 rounded-full border border-blue-500/30 flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-blue-400" /> Bientôt disponible
+                  <Clock className="h-3 w-3 text-blue-400" /> À venir
                 </span>
               ) : isActive ? (
                 <motion.div animate={{ opacity: [0.5, 1] }} transition={{ repeat: Infinity, duration: 1.5 }} className="flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
@@ -654,10 +654,10 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                   <label className="text-sm font-semibold mb-2 block">Quantité de Punches</label>
                   <div className="grid grid-cols-4 gap-2">
                     {[1, 5, 10, 25].map(q => (
-                      <button 
-                        key={q} 
+                      <button
+                        key={q}
                         type="button"
-                        onClick={() => setQuantity(q)} 
+                        onClick={() => setQuantity(q)}
                         className={cn('py-3 rounded-xl font-bold border-2 transition-colors', quantity === q ? 'border-amber-500 bg-amber-500/10 text-amber-500' : 'border-border text-muted-foreground')}
                       >
                         {q}
@@ -721,8 +721,8 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                             isDisabled
                               ? 'opacity-40 cursor-not-allowed border-border/40 text-muted-foreground/40 bg-card/30'
                               : isSelected
-                              ? 'border-amber-500 bg-gradient-to-br ' + op.color + ' text-white shadow-lg ring-2 ring-amber-500/30'
-                              : 'border-border text-muted-foreground bg-card hover:bg-muted/30 hover:border-amber-500/50'
+                                ? 'border-amber-500 bg-gradient-to-br ' + op.color + ' text-white shadow-lg ring-2 ring-amber-500/30'
+                                : 'border-border text-muted-foreground bg-card hover:bg-muted/30 hover:border-amber-500/50'
                           )}
                         >
                           <span>{op.label}</span>
@@ -750,12 +750,12 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                 </div>
 
                 <div className="flex items-start space-x-2 mb-4 text-left">
-                  <input 
-                    type="checkbox" 
-                    id="ageVerified" 
-                    checked={ageVerified} 
-                    onChange={(e) => setAgeVerified(e.target.checked)} 
-                    className="mt-1" 
+                  <input
+                    type="checkbox"
+                    id="ageVerified"
+                    checked={ageVerified}
+                    onChange={(e) => setAgeVerified(e.target.checked)}
+                    className="mt-1"
                   />
                   <label htmlFor="ageVerified" className="text-xs text-muted-foreground leading-snug">
                     Je certifie avoir au moins 18 ans et accepter le règlement officiel du Round.
