@@ -180,16 +180,9 @@ export default function RaffleDetailClient({ slug }) {
     refetchInterval: 20_000,
   });
 
-  if (isLoading || !raffle) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const startsAtMs = raffle.starts_at ? new Date(raffle.starts_at).getTime() : 0;
+  const startsAtMs = raffle?.starts_at ? new Date(raffle.starts_at).getTime() : 0;
   const isInitiallyUpcoming = Boolean(
+    raffle &&
     (raffle.is_upcoming || raffle.status === 'SCHEDULED' || (startsAtMs > 0 && startsAtMs > Date.now())) &&
     raffle.status !== 'COMPLETED' &&
     raffle.status !== 'CANCELLED' &&
@@ -210,6 +203,14 @@ export default function RaffleDetailClient({ slug }) {
       );
     }
   }, [raffle]);
+
+  if (isLoading || !raffle) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const isActive = (raffle.status === 'ACTIVE' || !isUpcoming) && !isReadOnly && !isUpcoming;
   const isCompleted = isReadOnly || raffle.status === 'COMPLETED';
