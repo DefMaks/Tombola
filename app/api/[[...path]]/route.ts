@@ -277,12 +277,14 @@ async function handler(request, ctx) {
         const clauses = [];
         const args = [];
         if (status === 'ALL') {
-          clauses.push("r.status IN ('ACTIVE','PENDING_DRAW','COMPLETED')");
-        } else if (status === 'ACTIVE') {
-          args.push('ACTIVE');
-          clauses.push(`r.status=$${args.length}`);
+          clauses.push("r.status IN ('ACTIVE','PENDING_DRAW','COMPLETED','SCHEDULED')");
+        } else if (status === 'ACTIVE' || status === 'FEED' || status === 'ACTIVE_AND_UPCOMING') {
+          clauses.push("r.status IN ('ACTIVE','SCHEDULED')");
           clauses.push("(r.ends_at IS NULL OR r.ends_at > now())");
           clauses.push("(r.max_tickets = 0 OR r.tickets_sold < r.max_tickets)");
+        } else if (status === 'UPCOMING' || status === 'SCHEDULED') {
+          clauses.push("(r.status = 'SCHEDULED' OR (r.status = 'ACTIVE' AND r.starts_at IS NOT NULL AND r.starts_at > now()))");
+          clauses.push("(r.ends_at IS NULL OR r.ends_at > now())");
         } else {
           args.push(status);
           clauses.push(`r.status=$${args.length}`);
@@ -301,12 +303,19 @@ async function handler(request, ctx) {
         const where = clauses.length ? 'WHERE ' + clauses.join(' AND ') : '';
         const cleanCommuneSql = commune ? commune.replace(/'/g, "''") : '';
         const sql = `
-          SELECT r.*, c.slug AS category_slug, c.name AS category_name
+          SELECT r.*, c.slug AS category_slug, c.name AS category_name,
+                 (CASE WHEN r.status = 'SCHEDULED' OR (r.starts_at IS NOT NULL AND r.starts_at > now()) THEN true ELSE false END) AS is_upcoming
           FROM raffles r LEFT JOIN categories c ON c.id=r.category_id
           ${where}
           ORDER BY 
             ${commune ? `CASE WHEN LOWER(COALESCE(r.target_commune,'')) = LOWER('${cleanCommuneSql}') THEN 0 ELSE 1 END, ` : ''}
-            CASE WHEN r.status='ACTIVE' THEN 0 WHEN r.status='PENDING_DRAW' THEN 1 ELSE 2 END, 
+            CASE 
+              WHEN r.status='ACTIVE' AND (r.starts_at IS NULL OR r.starts_at <= now()) THEN 0 
+              WHEN r.status='SCHEDULED' OR (r.starts_at IS NOT NULL AND r.starts_at > now()) THEN 1
+              WHEN r.status='PENDING_DRAW' THEN 2 
+              ELSE 3 
+            END, 
+            r.starts_at ASC NULLS LAST,
             r.ends_at ASC NULLS LAST
         `;
         const rows = await many(sql, args);
@@ -316,7 +325,8 @@ async function handler(request, ctx) {
       // GET /api/raffles/:slug
       if (segs.length === 2 && method === 'GET') {
         const raffle = await one(`
-          SELECT r.*, c.slug AS category_slug, c.name AS category_name
+          SELECT r.*, c.slug AS category_slug, c.name AS category_name,
+                 (CASE WHEN r.status = 'SCHEDULED' OR (r.starts_at IS NOT NULL AND r.starts_at > now()) THEN true ELSE false END) AS is_upcoming
           FROM raffles r LEFT JOIN categories c ON c.id=r.category_id
           WHERE r.slug=$1
         `, [segs[1]]);
@@ -420,8 +430,11 @@ async function handler(request, ctx) {
         const qty = Math.max(1, Math.min(100, parseInt(quantity, 10) || 1));
         if (!raffle_slug || !phone_number || !operator) return err('Champs requis manquants');
 
-        const raffle = await one('SELECT * FROM raffles WHERE slug=$1 AND status=$2', [raffle_slug, 'ACTIVE']);
-        if (!raffle) return err('Round non actif ou introuvable', 404);
+        const raffle = await one('SELECT * FROM raffles WHERE slug=$1', [raffle_slug]);
+        if (!raffle || (raffle.status !== 'ACTIVE' && raffle.status !== 'SCHEDULED')) return err('Round non actif ou introuvable', 404);
+        if (raffle.status === 'SCHEDULED' || (raffle.starts_at && new Date(raffle.starts_at) > new Date())) {
+          return err("Ce Round n'a pas encore débuté. Le décompte est en cours !", 400);
+        }
         const available = raffle.max_tickets - raffle.tickets_sold;
         if (qty > available) return err(`Seulement ${available} ${available > 1 ? 'Punches disponibles' : 'Punch disponible'}`);
 

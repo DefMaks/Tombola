@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Ticket, Flame, Clock, ChevronRight, ChevronLeft, Sparkles, Trophy, Star, ArrowRight, Quote, ExternalLink, MapPin, Building2, Share2 } from 'lucide-react';
+import { Ticket, Flame, Clock, ChevronRight, ChevronLeft, Sparkles, Trophy, Star, ArrowRight, Quote, ExternalLink, MapPin, Building2, Share2, Hourglass, Lock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import CommuneNoticeBanner from '@/components/CommuneNoticeBanner';
 import ShareAppModal from '@/components/ShareAppModal';
 import { cn } from '@/lib/utils';
 import { safeStorage } from '@/lib/storage';
+import { useCountdown } from '@/lib/useCountdown';
 
 const TYPE_STYLE = {
   DAILY: { label: 'Journalier', className: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
@@ -55,41 +56,33 @@ function timeProgress(startsAt, endsAt) {
   return ((now - s) / (e - s)) * 100;
 }
 
-function Countdown({ endsAt }) {
-  const [remaining, setRemaining] = useState('');
-  const [isUrgent, setIsUrgent] = useState(false);
+function Countdown({ endsAt, targetDate, isUpcoming = false }) {
+  const finalDate = targetDate || endsAt;
+  const { formatted, isFinished, isUrgent } = useCountdown(finalDate);
 
-  useEffect(() => {
-    if (!endsAt) return;
-    const tick = () => {
-      const diff = new Date(endsAt).getTime() - Date.now();
-      if (diff <= 0) {
-        setRemaining('Terminé');
-        setIsUrgent(false);
-        return;
-      }
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor((diff / 3600000) % 24);
-      const m = Math.floor((diff / 60000) % 60);
-      const s = Math.floor((diff / 1000) % 60);
-      setIsUrgent(d === 0 && h < 2);
-      setRemaining(d > 0 ? `${d}j ${h}h ${m}m` : `${h}h ${m}m ${s}s`);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [endsAt]);
+  if (isFinished) {
+    return (
+      <span className="font-mono font-bold text-xs tracking-tight text-muted-foreground">
+        {isUpcoming ? 'Coup d\'envoi !' : 'Terminé'}
+      </span>
+    );
+  }
 
   return (
     <span className={cn("font-mono font-bold text-xs tracking-tight", isUrgent ? "text-rose-500 animate-pulse" : "text-amber-500 dark:text-amber-400")}>
-      {remaining}
+      {isUpcoming ? `Dans ${formatted}` : formatted}
     </span>
   );
 }
 
-function RaffleCard({ raffle, index }) {
-  const isCompleted = raffle.status === 'COMPLETED';
-  const pct = timeProgress(raffle.starts_at, raffle.ends_at);
+function RaffleCard({ raffle, index, isUpcoming: propIsUpcoming = false }) {
+  const isUpcoming = propIsUpcoming || Boolean(
+    raffle.is_upcoming || 
+    raffle.status === 'SCHEDULED' || 
+    (raffle.starts_at && new Date(raffle.starts_at).getTime() > Date.now())
+  );
+  const isCompleted = !isUpcoming && raffle.status === 'COMPLETED';
+  const pct = isUpcoming ? 0 : timeProgress(raffle.starts_at, raffle.ends_at);
   const soldPct = raffle.max_tickets > 0 ? (raffle.tickets_sold / raffle.max_tickets) * 100 : 0;
   const t = TYPE_STYLE[raffle.type] || TYPE_STYLE.THRESHOLD;
   return (
@@ -107,14 +100,25 @@ function RaffleCard({ raffle, index }) {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap max-w-[85%]">
-              <Badge variant="outline" className={cn('backdrop-blur-md text-[10px] font-semibold', t.className)}>{t.label}</Badge>
+              {isUpcoming ? (
+                <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 backdrop-blur-md text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                  <Hourglass className="h-3 w-3 text-amber-400 shrink-0" />
+                  À venir
+                </Badge>
+              ) : (
+                <Badge variant="outline" className={cn('backdrop-blur-md text-[10px] font-semibold', t.className)}>{t.label}</Badge>
+              )}
               {raffle.scope_type === 'COMMUNE' && raffle.target_commune && (
                 <Badge className="bg-emerald-500/80 hover:bg-emerald-500 text-white border-emerald-400/40 backdrop-blur-md text-[9px] font-bold flex items-center gap-0.5 shadow-sm">
                   <MapPin className="h-2.5 w-2.5" />
                   {raffle.target_commune}
                 </Badge>
               )}
-              {soldPct >= 70 && !isCompleted && <Badge variant="outline" className="bg-rose-500/20 text-rose-300 border-rose-500/40 backdrop-blur-md text-[10px]"><Flame className="h-3 w-3 mr-0.5" />HOT</Badge>}
+              {!isUpcoming && soldPct >= 70 && !isCompleted && (
+                <Badge variant="outline" className="bg-rose-500/20 text-rose-300 border-rose-500/40 backdrop-blur-md text-[10px]">
+                  <Flame className="h-3 w-3 mr-0.5" />HOT
+                </Badge>
+              )}
               {isCompleted && <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/40 backdrop-blur-md text-[10px]">🏆 Terminé</Badge>}
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-2.5">
@@ -123,26 +127,35 @@ function RaffleCard({ raffle, index }) {
           </div>
           <div className="p-3 space-y-2">
             <div className="flex items-center justify-between text-[11px] gap-1">
-              <PalierFireBadges count={raffle.tickets_sold} variant="compact" />
-              {!isCompleted && (
+              <PalierFireBadges count={isUpcoming ? 0 : raffle.tickets_sold} variant="compact" />
+              {isUpcoming ? (
+                <span className="flex items-center gap-1 text-[11px] shrink-0 text-amber-400 font-bold">
+                  <Clock className="h-3 w-3 text-amber-400 shrink-0" />
+                  <Countdown targetDate={raffle.starts_at} isUpcoming={true} />
+                </span>
+              ) : !isCompleted ? (
                 <span className="flex items-center gap-1 text-[11px] shrink-0">
                   <Clock className="h-3 w-3 text-amber-400 shrink-0" />
                   <Countdown endsAt={raffle.ends_at} />
                 </span>
-              )}
+              ) : null}
             </div>
             <Progress value={pct} className="h-1.5" />
             <div className="flex items-center justify-between pt-0.5">
               <div className="flex items-center gap-1.5">
                 <div className="text-base sm:text-lg font-black text-primary">{Number(raffle.ticket_price).toFixed(0)}$</div>
-                {!isCompleted && Number(raffle.ticket_price) !== 1 && (
+                {!isCompleted && !isUpcoming && Number(raffle.ticket_price) !== 1 && (
                   <div className="text-[9px] font-black uppercase text-amber-400 leading-tight bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded-md">
                     <div>Maximise tes</div>
                     <div>Chances !</div>
                   </div>
                 )}
               </div>
-              {!isCompleted ? (
+              {isUpcoming ? (
+                <div className="flex items-center gap-1 text-xs font-bold text-amber-400 group-hover:translate-x-0.5 transition-transform">
+                  <Lock className="h-3.5 w-3.5 text-amber-400/80" /> Bientôt <ChevronRight className="h-3.5 w-3.5" />
+                </div>
+              ) : !isCompleted ? (
                 <div className="flex items-center gap-0.5 text-xs font-bold text-primary group-hover:translate-x-0.5 transition-transform">
                   Participer <ChevronRight className="h-3.5 w-3.5" />
                 </div>
@@ -515,19 +528,37 @@ export default function HomePage() {
     };
   });
 
-  // Compute items - ONLY active & non-expired raffles
+  // Compute items - Partition into Active and Upcoming
   const now = new Date();
   const activeRaffles = raffleList.filter(r => {
+    if (r.is_upcoming || r.status === 'SCHEDULED') return false;
     if (r.status !== 'ACTIVE') return false;
+    if (r.starts_at && new Date(r.starts_at) > now) return false;
     if (r.ends_at && new Date(r.ends_at) <= now) return false;
     if (r.max_tickets > 0 && r.tickets_sold >= r.max_tickets) return false;
     return true;
   });
+
+  const upcomingRaffles = raffleList.filter(r => {
+    if (r.status === 'COMPLETED' || r.status === 'CANCELLED' || r.status === 'ARCHIVED') return false;
+    if (r.is_upcoming || r.status === 'SCHEDULED') return true;
+    if (r.starts_at && new Date(r.starts_at) > now) return true;
+    return false;
+  });
+
   const featuredActiveRaffles = activeRaffles.filter(r => r.is_featured);
   const wonRaffles = raffleList.filter(r => r.status === 'COMPLETED').slice(0, 6);
 
-  const filteredActiveRaffles = activeRaffles.filter(r => {
-    if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
+  const filteredActiveRaffles = (typeFilter === 'UPCOMING')
+    ? []
+    : activeRaffles.filter(r => {
+        if (typeFilter !== 'ALL' && r.type !== typeFilter) return false;
+        if (scopeFilter === 'CITY' && r.scope_type !== 'CITY') return false;
+        if (scopeFilter === 'COMMUNE' && r.scope_type !== 'COMMUNE') return false;
+        return true;
+      });
+
+  const filteredUpcomingRaffles = upcomingRaffles.filter(r => {
     if (scopeFilter === 'CITY' && r.scope_type !== 'CITY') return false;
     if (scopeFilter === 'COMMUNE' && r.scope_type !== 'COMMUNE') return false;
     return true;
@@ -538,6 +569,7 @@ export default function HomePage() {
     { id: 'DAILY', label: 'Ce jour', count: activeRaffles.filter(r => r.type === 'DAILY').length },
     { id: 'WEEKLY', label: 'Semaine', count: activeRaffles.filter(r => r.type === 'WEEKLY').length },
     { id: 'MONTHLY', label: 'Mois', count: activeRaffles.filter(r => r.type === 'MONTHLY').length },
+    ...(upcomingRaffles.length > 0 ? [{ id: 'UPCOMING', label: '⏳ À venir', count: upcomingRaffles.length }] : []),
   ];
 
   return (
@@ -610,12 +642,15 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Active raffles grid */}
+      {/* Active & Upcoming raffles grid */}
       <section className="px-4 pt-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold text-lg">
-🔥 Rounds en cours</h2>
-          <span className="text-xs text-muted-foreground">{filteredActiveRaffles.length} en cours</span>
+            {typeFilter === 'UPCOMING' ? '⏳ Prochains Rounds (À venir)' : '🔥 Rounds en cours'}
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {typeFilter === 'UPCOMING' ? `${filteredUpcomingRaffles.length} à venir` : `${filteredActiveRaffles.length} en cours`}
+          </span>
         </div>
 
         {/* Territorial Scope Filter (If commune is set or if there are commune raffles) */}
@@ -630,7 +665,7 @@ export default function HomePage() {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Tous ({activeRaffles.length})
+              Tous ({typeFilter === 'UPCOMING' ? upcomingRaffles.length : activeRaffles.length})
             </button>
             <button
               onClick={() => setScopeFilter('CITY')}
@@ -638,11 +673,10 @@ export default function HomePage() {
                 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
                 scopeFilter === 'CITY'
                   ? 'bg-punchy-apricot text-slate-950 shadow-sm'
-
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <Building2 className="h-3 w-3" /> Ville ({activeRaffles.filter(r => r.scope_type === 'CITY').length})
+              <Building2 className="h-3 w-3" /> Ville ({typeFilter === 'UPCOMING' ? upcomingRaffles.filter(r => r.scope_type === 'CITY').length : activeRaffles.filter(r => r.scope_type === 'CITY').length})
             </button>
             <button
               onClick={() => setScopeFilter('COMMUNE')}
@@ -650,11 +684,10 @@ export default function HomePage() {
                 'flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
                 scopeFilter === 'COMMUNE'
                   ? 'bg-punchy-apricot text-slate-950 shadow-sm'
-
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <MapPin className="h-3 w-3" /> {userProfile.commune} ({activeRaffles.filter(r => r.scope_type === 'COMMUNE').length})
+              <MapPin className="h-3 w-3" /> {userProfile.commune} ({typeFilter === 'UPCOMING' ? upcomingRaffles.filter(r => r.scope_type === 'COMMUNE').length : activeRaffles.filter(r => r.scope_type === 'COMMUNE').length})
             </button>
           </div>
         )}
@@ -690,15 +723,51 @@ export default function HomePage() {
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="aspect-[4/5]" />)}
           </div>
+        ) : typeFilter === 'UPCOMING' ? (
+          filteredUpcomingRaffles.length === 0 ? (
+            <div className="text-center py-8 px-4 rounded-2xl bg-card border border-border">
+              <Hourglass className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+              <p className="text-sm font-medium text-muted-foreground">Aucun round à venir programmé pour le moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {filteredUpcomingRaffles.map((r, i) => <RaffleCard key={r.id} raffle={r} index={i} isUpcoming={true} />)}
+            </div>
+          )
         ) : filteredActiveRaffles.length === 0 ? (
           <div className="text-center py-8 px-4 rounded-2xl bg-card border border-border">
             <Ticket className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
             <p className="text-sm font-medium text-muted-foreground">Aucun round disponible dans cette catégorie pour le moment.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredActiveRaffles.map((r, i) => <RaffleCard key={r.id} raffle={r} index={i} />)}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              {filteredActiveRaffles.map((r, i) => <RaffleCard key={r.id} raffle={r} index={i} />)}
+            </div>
+
+            {/* Section des rounds à venir sous les rounds en cours */}
+            {filteredUpcomingRaffles.length > 0 && (
+              <div className="pt-6 border-t border-border/40 mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Hourglass className="h-4 w-4 text-amber-400" />
+                    <h3 className="font-bold text-base">Prochains Rounds (À venir)</h3>
+                  </div>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                    {filteredUpcomingRaffles.length} à venir
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Tirages programmés avec compte à rebours vers le coup d&apos;envoi.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {filteredUpcomingRaffles.map((r, i) => (
+                    <RaffleCard key={r.id} raffle={r} index={i} isUpcoming={true} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
 

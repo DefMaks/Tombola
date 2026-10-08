@@ -19,7 +19,9 @@ import {
   MapPin, 
   Images, 
   ZoomIn, 
-  Share2 
+  Share2,
+  Lock,
+  Hourglass
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +31,7 @@ import BottomNav from '@/components/BottomNav';
 import PhoneAuthModal from '@/components/PhoneAuthModal';
 import PalierFireBadges from '@/components/PalierFireBadges';
 import { safeStorage } from '@/lib/storage';
+import { useCountdown } from '@/lib/useCountdown';
 import AdBlock from '@/components/AdBlock';
 import ImageLightbox from '@/components/ImageLightbox';
 import ShareRoundModal, { formatSharesCount } from '@/components/ShareRoundModal';
@@ -91,6 +94,29 @@ function Countdown({ endsAt }) {
   );
 }
 
+function UpcomingLockedButton({ startsAt, onUnlock }) {
+  const { formatted, isFinished } = useCountdown(startsAt);
+
+  useEffect(() => {
+    if (isFinished && onUnlock) {
+      onUnlock();
+    }
+  }, [isFinished, onUnlock]);
+
+  return (
+    <Button
+      disabled={true}
+      size="lg"
+      className="w-full h-14 text-sm sm:text-base font-bold rounded-2xl shadow-2xl bg-slate-950/95 text-amber-400 border border-amber-500/40 cursor-not-allowed opacity-95 backdrop-blur-md flex items-center justify-center gap-2.5 select-none transition-all"
+    >
+      <Lock className="h-4.5 w-4.5 text-amber-400 shrink-0 animate-pulse" />
+      <span className="font-mono tracking-tight font-black text-sm sm:text-base">
+        {formatted ? `Ouvre dans ${formatted}` : "Ouverture imminente..."}
+      </span>
+    </Button>
+  );
+}
+
 export default function RaffleDetailClient({ slug }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -147,7 +173,30 @@ export default function RaffleDetailClient({ slug }) {
     );
   }
 
-  const isActive = raffle.status === 'ACTIVE' && !isReadOnly;
+  const startsAtMs = raffle.starts_at ? new Date(raffle.starts_at).getTime() : 0;
+  const isInitiallyUpcoming = Boolean(
+    (raffle.is_upcoming || raffle.status === 'SCHEDULED' || (startsAtMs > 0 && startsAtMs > Date.now())) &&
+    raffle.status !== 'COMPLETED' &&
+    raffle.status !== 'CANCELLED' &&
+    raffle.status !== 'ARCHIVED'
+  );
+  const [isUpcoming, setIsUpcoming] = useState(isInitiallyUpcoming);
+
+  useEffect(() => {
+    if (raffle) {
+      const s = raffle.starts_at ? new Date(raffle.starts_at).getTime() : 0;
+      setIsUpcoming(
+        Boolean(
+          (raffle.is_upcoming || raffle.status === 'SCHEDULED' || (s > 0 && s > Date.now())) &&
+          raffle.status !== 'COMPLETED' &&
+          raffle.status !== 'CANCELLED' &&
+          raffle.status !== 'ARCHIVED'
+        )
+      );
+    }
+  }, [raffle]);
+
+  const isActive = (raffle.status === 'ACTIVE' || !isUpcoming) && !isReadOnly && !isUpcoming;
   const isCompleted = isReadOnly || raffle.status === 'COMPLETED';
   const sold = live?.tickets_sold ?? raffle.tickets_sold;
   const max = live?.max_tickets ?? raffle.max_tickets;
@@ -212,6 +261,11 @@ export default function RaffleDetailClient({ slug }) {
                     <MapPin className="h-3 w-3" /> {raffle.target_commune}
                   </Badge>
                 )}
+                {isUpcoming && (
+                  <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold text-[11px] flex items-center gap-1 shadow-sm">
+                    <Hourglass className="h-3 w-3 text-amber-400" /> À venir
+                  </Badge>
+                )}
                 {isCompleted && (
                   <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/40 font-bold">
                     🏆 Round remporté (Tirage terminé)
@@ -246,7 +300,11 @@ export default function RaffleDetailClient({ slug }) {
                 <span>{formatSharesCount(sharesCount)} {sharesCount > 1 ? 'partages' : 'partage'}</span>
               </button>
 
-              {isActive ? (
+              {isUpcoming ? (
+                <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-amber-400" /> Bientôt disponible
+                </span>
+              ) : isActive ? (
                 <motion.div animate={{ opacity: [0.5, 1] }} transition={{ repeat: Infinity, duration: 1.5 }} className="flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> LIVE
                 </motion.div>
@@ -257,7 +315,7 @@ export default function RaffleDetailClient({ slug }) {
           </div>
 
           <Progress value={pct} className="h-2" />
-          {isActive && (
+          {isActive && !isUpcoming && (
             <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground bg-secondary/40 py-1.5 px-3 rounded-xl border border-border/40">
               <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
               <span className="font-medium">Temps restant :</span>
@@ -328,7 +386,16 @@ export default function RaffleDetailClient({ slug }) {
       {/* Floating Action Button */}
       <div className="fixed bottom-16 left-0 right-0 z-30 pointer-events-none">
         <div className="max-w-lg mx-auto px-4 pb-3 pointer-events-auto">
-          {isActive ? (
+          {isUpcoming ? (
+            <UpcomingLockedButton
+              startsAt={raffle.starts_at}
+              onUnlock={() => {
+                setIsUpcoming(false);
+                qc.invalidateQueries({ queryKey: ['raffle', slug] });
+                qc.invalidateQueries({ queryKey: ['raffle-live', slug] });
+              }}
+            />
+          ) : isActive ? (
             <BuyTicketSheet
               raffle={raffle}
               sold={sold}
