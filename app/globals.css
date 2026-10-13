@@ -135,3 +135,96 @@ code {
     @apply bg-background text-foreground;
     }
 }
+
+/* ==========================================================================
+   OneSignal Push Notification Prompt Styling (Punchy UIX Theme)
+   ========================================================================== */
+#onesignal-slidedown-container,
+.onesignal-slidedown-container {
+  z-index: 99999 !important;
+  font-family: inherit !important;
+}
+
+#onesignal-slidedown-dialog {
+  background: #0f172a !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.45) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), 0 0 30px rgba(245, 158, 11, 0.25) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  color: #f8fafc !important;
+  overflow: hidden !important;
+  max-width: 440px !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#onesignal-slidedown-dialog .slidedown-body {
+  padding: 1.25rem 1.25rem 1rem 1.25rem !important;
+}
+
+#onesignal-slidedown-dialog .slidedown-body-message {
+  color: #f1f5f9 !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+}
+
+#onesignal-slidedown-dialog .slidedown-body-icon {
+  margin-right: 0.875rem !important;
+}
+
+#onesignal-slidedown-dialog .slidedown-body-icon img {
+  border-radius: 0.75rem !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.5) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25) !important;
+}
+
+#onesignal-slidedown-dialog .slidedown-footer {
+  padding: 0 1.25rem 1.25rem 1.25rem !important;
+  display: flex !important;
+  gap: 0.75rem !important;
+  justify-content: flex-end !important;
+}
+
+#onesignal-slidedown-allow-button,
+#onesignal-slidedown-dialog .primary.slidedown-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important;
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  font-size: 0.875rem !important;
+  border-radius: 0.75rem !important;
+  border: none !important;
+  padding: 0.65rem 1.25rem !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+  transition: all 0.2s ease !important;
+  letter-spacing: 0.01em !important;
+}
+
+#onesignal-slidedown-allow-button:hover,
+#onesignal-slidedown-dialog .primary.slidedown-button:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5) !important;
+}
+
+#onesignal-slidedown-cancel-button,
+#onesignal-slidedown-dialog .secondary.slidedown-button {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  padding: 0.65rem 1rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+#onesignal-slidedown-cancel-button:hover,
+#onesignal-slidedown-dialog .secondary.slidedown-button:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}

@@ -36,9 +36,14 @@ export default function NotificationManagerCard({ userPhone = null, commune = nu
         setIsEnabled(false);
         toast.info('Notifications désactivées');
       } else {
+        if (typeof window !== 'undefined' && window.OneSignal) {
+          try {
+            await window.OneSignal.Notifications.requestPermission();
+          } catch (e) {}
+        }
         await subscribeUserToPush({ userPhone, commune });
         setIsEnabled(true);
-        toast.success('Notifications des tirages activées');
+        toast.success('Notifications des tirages activées 🥊');
       }
     } catch (err) {
       toast.error(err.message || 'Impossible de modifier les notifications');

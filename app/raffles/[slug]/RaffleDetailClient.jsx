@@ -133,9 +133,16 @@ export default function RaffleDetailClient({ slug }) {
   const handleSubscribeAlert = async () => {
     setIsSubscribing(true);
     try {
+      if (typeof window !== 'undefined' && window.OneSignal) {
+        try {
+          await window.OneSignal.Notifications.requestPermission();
+        } catch (e) {
+          console.warn('[OneSignal Subscribe Warning]', e?.message);
+        }
+      }
       const phone = safeStorage.getItem('punchy_user_phone') || safeStorage.getItem('user_phone') || null;
       await subscribeUserToPush({ userPhone: phone, raffleSlug: slug });
-      toast.success("Alerte programmée ! Vous recevrez une notification au lancement.");
+      toast.success("Alerte programmée ! Vous recevrez une notification au coup d'envoi 🥊");
     } catch (err) {
       toast.error(err.message || "Impossible d'activer les alertes.");
     } finally {

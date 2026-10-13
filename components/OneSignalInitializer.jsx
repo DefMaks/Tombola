@@ -19,10 +19,29 @@ export default function OneSignalInitializer() {
           notifyButton: {
             enable: false,
           },
+          promptOptions: {
+            slidedown: {
+              prompts: [
+                {
+                  type: 'push',
+                  autoPrompt: true,
+                  delay: {
+                    pageViews: 1,
+                    timeDelay: 3,
+                  },
+                  text: {
+                    actionMessage: "🥊 Activez les notifications pour ne manquer aucun coup d'envoi de Round, gain de cagnotte ou tirage au sort !",
+                    acceptButton: '🔥 Activer les alertes',
+                    cancelButton: 'Plus tard',
+                  },
+                },
+              ],
+            },
+          },
         });
 
         // Synchroniser automatiquement l'identifiant du joueur connecté
-        const userPhone = safeStorage.getItem('user_phone');
+        const userPhone = safeStorage.getItem('user_phone') || safeStorage.getItem('punchy_user_phone');
         if (userPhone) {
           OneSignal.login(userPhone);
         }
