@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Providers from './providers';
 import WinnerNotificationBanner from '@/components/WinnerNotificationBanner';
 import SmartAppBanner from '@/components/SmartAppBanner';
+import OneSignalInitializer from '@/components/OneSignalInitializer';
 
 export default function LayoutClient({ children }) {
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function LayoutClient({ children }) {
 
   return (
     <Providers>
+      <OneSignalInitializer />
       <SmartAppBanner />
       {children}
       <WinnerNotificationBanner />

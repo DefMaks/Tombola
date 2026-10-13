@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { formatDRCPhone, sendPhoneOtp, signInWithPhoneOtp, signInWithPassword } from '@/lib/auth/actions';
 import { KINSHASA_COMMUNES } from '@/lib/constants/communes';
+import TurnstileWidget from '@/components/TurnstileWidget';
+import { trackLogin } from '@/lib/analytics';
 
 interface PhoneAuthModalProps {
   open: boolean;
@@ -38,6 +40,7 @@ export default function PhoneAuthModal({
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [otpCode, setOtpCode] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(60);
@@ -52,6 +55,7 @@ export default function PhoneAuthModal({
       setCommune('');
       setPassword('');
       setNewPassword('');
+      setTurnstileToken('');
     }
   }, [open, defaultMode]);
 
@@ -87,8 +91,9 @@ export default function PhoneAuthModal({
     }
     setLoading(true);
     try {
-      const res = await signInWithPassword(fullPhone, password);
+      const res = await signInWithPassword(fullPhone, password, turnstileToken);
       toast.success('Connexion réussie !');
+      trackLogin('password');
       onSuccess?.(res.phone);
       onOpenChange(false);
     } catch (err: any) {
@@ -125,7 +130,7 @@ export default function PhoneAuthModal({
 
     setLoading(true);
     try {
-      const res = await sendPhoneOtp(fullPhone);
+      const res = await sendPhoneOtp(fullPhone, turnstileToken);
       if (res.simulated && res.otpCode) {
         setSimulatedCode(res.otpCode);
         toast.info(`Mode Simulation — Code OTP: ${res.otpCode}`);
@@ -151,6 +156,7 @@ export default function PhoneAuthModal({
     try {
       const res = await signInWithPhoneOtp(fullPhone, otpCode, fullName, password, commune, 'Kinshasa');
       toast.success(`Inscription réussie ! Bienvenue résident de ${commune}.`);
+      trackLogin('signup_otp');
       onSuccess?.(res.phone);
       onOpenChange(false);
     } catch (err: any) {
@@ -168,7 +174,7 @@ export default function PhoneAuthModal({
     }
     setLoading(true);
     try {
-      const res = await sendPhoneOtp(fullPhone);
+      const res = await sendPhoneOtp(fullPhone, turnstileToken);
       if (res.simulated && res.otpCode) {
         setSimulatedCode(res.otpCode);
         toast.info(`Code OTP: ${res.otpCode}`);
@@ -198,6 +204,7 @@ export default function PhoneAuthModal({
     try {
       const res = await signInWithPhoneOtp(fullPhone, otpCode, undefined, newPassword || undefined);
       toast.success('Mot de passe mis à jour et connexion réussie !');
+      trackLogin('reset_otp');
       onSuccess?.(res.phone);
       onOpenChange(false);
     } catch (err: any) {
@@ -301,6 +308,8 @@ export default function PhoneAuthModal({
                 </button>
               </div>
             </div>
+
+            <TurnstileWidget onSuccess={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
 
             <Button
               onClick={handleSignInPassword}
@@ -420,6 +429,8 @@ export default function PhoneAuthModal({
                   </div>
                 </div>
 
+                <TurnstileWidget onSuccess={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
+
                 <Button
                   onClick={handleSignUpRequestOtp}
                   disabled={loading || !fullName || !phoneDigits || !commune || password.length < 6}
@@ -502,6 +513,8 @@ export default function PhoneAuthModal({
                     />
                   </div>
                 </div>
+
+                <TurnstileWidget onSuccess={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
 
                 <Button
                   onClick={handleResetRequestOtp}

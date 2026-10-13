@@ -31,7 +31,7 @@ export function formatDRCPhone(phone: string): string {
 /**
  * Send SMS OTP using Twilio SMS gateway or simulation fallback
  */
-export async function sendPhoneOtp(rawPhone: string) {
+export async function sendPhoneOtp(rawPhone: string, turnstileToken?: string) {
   const formattedPhone = formatDRCPhone(rawPhone);
   if (!formattedPhone || formattedPhone.length < 12) {
     throw new Error('Veuillez entrer un numéro RDC valide (ex: 0820000000 ou +243820000000)');
@@ -42,6 +42,7 @@ export async function sendPhoneOtp(rawPhone: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       phone_number: formattedPhone,
+      turnstileToken: turnstileToken || undefined,
     }),
   });
 
@@ -114,7 +115,7 @@ export async function signInWithPhoneOtp(
 /**
  * Sign in using phone number + password
  */
-export async function signInWithPassword(rawPhone: string, password: string) {
+export async function signInWithPassword(rawPhone: string, password: string, turnstileToken?: string) {
   const formattedPhone = formatDRCPhone(rawPhone);
 
   if (!formattedPhone || formattedPhone.length < 12) {
@@ -130,6 +131,7 @@ export async function signInWithPassword(rawPhone: string, password: string) {
     body: JSON.stringify({
       phoneNumber: formattedPhone,
       password: password,
+      turnstileToken: turnstileToken || undefined,
     }),
   });
 

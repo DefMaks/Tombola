@@ -39,6 +39,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { initiatePayment, confirmPaymentDemo, checkPaymentStatus } from '@/lib/api/payment';
 import { subscribeUserToPush } from '@/lib/push-client';
+import { trackRaffleView, trackTicketPurchase, trackShare } from '@/lib/analytics';
 
 const OPERATORS = [
   { id: 'MPESA', label: 'M-Pesa', color: 'from-red-500 to-red-700', logo: '', prefixes: '' },
@@ -164,6 +165,18 @@ export default function RaffleDetailClient({ slug }) {
       }).catch(() => { });
     }
   }, [slug]);
+
+  // Track view with Google Analytics (GA4)
+  useEffect(() => {
+    if (raffle?.id) {
+      trackRaffleView({
+        id: raffle.id,
+        title: raffle.title,
+        ticketPrice: Number(raffle.ticket_price || 0),
+        category: raffle.scope_type || 'Tombola',
+      });
+    }
+  }, [raffle?.id, raffle?.title, raffle?.ticket_price, raffle?.scope_type]);
 
   // Sync shares count
   useEffect(() => {
@@ -466,6 +479,9 @@ export default function RaffleDetailClient({ slug }) {
         sharesCount={sharesCount}
         onShareSuccess={() => {
           setLocalSharesCount(prev => (prev ?? 0) + 1);
+          if (raffle?.id) {
+            trackShare({ raffleId: raffle.id, method: 'social_share' });
+          }
         }}
       />
 
@@ -555,6 +571,14 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
           setTickets(res.tickets || []);
           setStep('success');
           toast.success('Paiement confirmé avec succès ! Vos Punches sont réservés.');
+          trackTicketPurchase({
+            transactionId: res?.transaction?.merchant_reference || tx?.id,
+            raffleId: raffle.id,
+            raffleTitle: raffle.title,
+            ticketCount: quantity,
+            totalAmount: total,
+            paymentMethod: operator,
+          });
           onSuccess?.();
         } else if (res?.transaction?.status === 'FAILED') {
           setStep('failed');
@@ -572,7 +596,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [step, tx?.id, onSuccess]);
+  }, [step, tx?.id, onSuccess, raffle?.id, raffle?.title, quantity, total, operator]);
 
   const pollStatus = async (txId) => {
     if (!txId) return;
@@ -583,6 +607,14 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
         setTickets(res.tickets || []);
         setStep('success');
         toast.success('Paiement confirmé avec succès !');
+        trackTicketPurchase({
+          transactionId: res?.transaction?.merchant_reference || txId,
+          raffleId: raffle.id,
+          raffleTitle: raffle.title,
+          ticketCount: quantity,
+          totalAmount: total,
+          paymentMethod: operator,
+        });
         onSuccess?.();
       } else if (res?.transaction?.status === 'FAILED') {
         setStep('failed');

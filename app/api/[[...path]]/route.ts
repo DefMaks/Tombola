@@ -4,6 +4,7 @@ import { initiateTwigaPayment, checkTwigaPaymentStatus, isTwigaPaymentSuccess, i
 import { hashPassword } from '@/lib/auth/password';
 import { sendContactEmail } from '@/lib/email.functions';
 import { sendAfricasTalkingSms } from '@/lib/sms';
+import { verifyTurnstileToken } from '@/lib/auth/turnstile';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -64,6 +65,37 @@ async function handler(request, ctx) {
         let cleaned = String(toNumber).replace(/[\s\-\(\)\.]/g, '').trim();
         if (cleaned.startsWith('0')) cleaned = '243' + cleaned.slice(1);
         if (!cleaned.startsWith('+')) cleaned = '+' + cleaned;
+
+        // 1. Vérification Cloudflare Turnstile anti-bot
+        const turnstileToken = payload.turnstileToken || payload.turnstile_token;
+        const clientIp = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+        const turnstileRes = await verifyTurnstileToken(turnstileToken, clientIp);
+        if (!turnstileRes.success) {
+          return err(turnstileRes.error || 'Vérification Cloudflare Turnstile échouée', 403);
+        }
+
+        // 2. Protection Anti-Abus & Rate Limiting (économise le solde SMS Africa's Talking)
+        try {
+          // Max 1 demande par 60 secondes pour un même numéro
+          const recent = await one(
+            "SELECT id FROM otp_codes WHERE phone_number=$1 AND created_at > now() - interval '60 seconds' ORDER BY id DESC LIMIT 1",
+            [cleaned]
+          );
+          if (recent) {
+            return err('Veuillez patienter 60 secondes avant de demander un nouveau code OTP.', 429);
+          }
+
+          // Max 4 demandes par tranche de 1 heure pour un même numéro
+          const hourly = await one(
+            "SELECT count(*) as count FROM otp_codes WHERE phone_number=$1 AND created_at > now() - interval '1 hour'",
+            [cleaned]
+          );
+          if (Number(hourly?.count || 0) >= 4) {
+            return err('Trop de demandes d\'OTP pour ce numéro. Veuillez patienter 1 heure avant de réessayer.', 429);
+          }
+        } catch (rlErr: any) {
+          console.warn('[Rate Limit Warning]', rlErr?.message);
+        }
 
         const otpCode = requestedOtpCode || Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAtMs = Date.now() + 10 * 60 * 1000;
@@ -196,6 +228,15 @@ async function handler(request, ctx) {
         const rawPassword = payload.password;
 
         if (!rawPhone || !rawPassword) return err('Numéro de téléphone et mot de passe requis');
+
+        const turnstileToken = payload.turnstileToken || payload.turnstile_token;
+        if (turnstileToken) {
+          const clientIp = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+          const turnstileRes = await verifyTurnstileToken(turnstileToken, clientIp);
+          if (!turnstileRes.success) {
+            return err(turnstileRes.error || 'Vérification Cloudflare Turnstile échouée', 403);
+          }
+        }
 
         let cleaned = String(rawPhone).replace(/[\s\-\(\)\.]/g, '').trim();
         if (cleaned.startsWith('0')) cleaned = '243' + cleaned.slice(1);
