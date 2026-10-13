@@ -12,6 +12,7 @@ import {
   sendWebPushNotification,
   getVapidPublicKey,
 } from '@/lib/notifications';
+import { sendOneSignalPushNotification } from '@/lib/notifications/onesignal';
 import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
       let finalUrl = target_url || (raffle ? `/raffles/${raffle.slug}` : '/');
       finalUrl = renderNotificationText(finalUrl, raffle);
 
-      // Web Push dispatch
+      // Web Push dispatch (VAPID)
       const dispatchResult = await sendWebPushNotification({
         title: finalTitle,
         body: finalBody,
@@ -128,6 +129,15 @@ export async function POST(req: NextRequest) {
         badge: '/P-punchy-emblem.png',
         filter: { target_commune },
       });
+
+      // OneSignal Web Push dispatch
+      const fullUrl = finalUrl ? `https://punchyplay.com${finalUrl.startsWith('/') ? finalUrl : '/' + finalUrl}` : 'https://punchyplay.com';
+      await sendOneSignalPushNotification({
+        title: finalTitle,
+        message: finalBody,
+        url: fullUrl,
+        filters: target_commune ? [{ field: 'tag', key: 'commune', relation: '=', value: target_commune }] : undefined,
+      }).catch((e: any) => console.warn('[OneSignal Flash Warning]', e?.message));
 
       // Save to logs (Journal de bord)
       const logEntry = await createPushLog({
@@ -196,7 +206,7 @@ export async function POST(req: NextRequest) {
       const finalBody = renderNotificationText(chosenTemplate.body, selectedRaffle);
       const finalUrl = renderNotificationText(chosenTemplate.target_url || `/raffles/${selectedRaffle.slug}`, selectedRaffle);
 
-      // Dispatch
+      // Dispatch (VAPID)
       const dispatchResult = await sendWebPushNotification({
         title: finalTitle,
         body: finalBody,
@@ -204,6 +214,14 @@ export async function POST(req: NextRequest) {
         icon: '/P-punchy-emblem.png',
         badge: '/P-punchy-emblem.png',
       });
+
+      // Dispatch (OneSignal)
+      const fullUrlSlot = finalUrl ? `https://punchyplay.com${finalUrl.startsWith('/') ? finalUrl : '/' + finalUrl}` : 'https://punchyplay.com';
+      await sendOneSignalPushNotification({
+        title: finalTitle,
+        message: finalBody,
+        url: fullUrlSlot,
+      }).catch((e: any) => console.warn('[OneSignal Slot Warning]', e?.message));
 
       // Update slot sent date
       if (slot === 'morning') {

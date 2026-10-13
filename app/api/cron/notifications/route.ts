@@ -8,6 +8,7 @@ import {
   renderNotificationText,
   sendWebPushNotification,
 } from '@/lib/notifications';
+import { sendOneSignalPushNotification } from '@/lib/notifications/onesignal';
 import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -26,15 +27,15 @@ export async function GET(req: NextRequest) {
 
     let targetSlot = null;
 
-    // Morning window: 08:00 - 09:30
+    // Morning window: 08:00 - 09:30 Kinshasa
     if (hours === 8 || (hours === 9 && minutes <= 30)) {
       if (settings.morning_sent_date !== today) {
         targetSlot = 'morning';
       }
     }
 
-    // Evening window: 18:00 - 19:30
-    if (hours === 18 || (hours === 19 && minutes <= 30)) {
+    // Evening window: Approche de 21h00 (20h30 - 21h15) ou créneau 18h00 - 19h30
+    if ((hours === 20 && minutes >= 30) || (hours === 21 && minutes <= 15) || (hours === 18 || (hours === 19 && minutes <= 30))) {
       if (settings.evening_sent_date !== today) {
         targetSlot = 'evening';
       }
@@ -66,6 +67,13 @@ export async function GET(req: NextRequest) {
           filter: { raffle_slug: raffle.slug }
         });
         
+        // OneSignal dispatch pour le lancement du Round
+        sendOneSignalPushNotification({
+          title: `🚀 Le Round ${raffle.title} est ouvert !`,
+          message: "Le compte à rebours est terminé. Réserve ton Punch maintenant avant qu'il ne soit complet !",
+          url: `https://punchyplay.com${targetUrl}`,
+        }).catch((e: any) => console.warn('[OneSignal Cron Launch Error]', e?.message));
+
         await createPushLog({
           slot: 'launch',
           title: `🚀 Le Round ${raffle.title} est ouvert !`,
@@ -124,6 +132,14 @@ export async function GET(req: NextRequest) {
       icon: '/P-punchy-emblem.png',
       badge: '/P-punchy-emblem.png',
     });
+
+    // OneSignal dispatch pour le créneau (Matin ou Soirée 21h)
+    const fullUrlCron = finalUrl ? `https://punchyplay.com${finalUrl.startsWith('/') ? finalUrl : '/' + finalUrl}` : 'https://punchyplay.com';
+    sendOneSignalPushNotification({
+      title: finalTitle,
+      message: finalBody,
+      url: fullUrlCron,
+    }).catch((e: any) => console.warn('[OneSignal Cron Slot Error]', e?.message));
 
     if (targetSlot === 'morning') {
       await updatePushSettings({ morning_sent_date: today });

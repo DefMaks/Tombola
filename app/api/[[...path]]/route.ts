@@ -5,6 +5,7 @@ import { hashPassword } from '@/lib/auth/password';
 import { sendContactEmail } from '@/lib/email.functions';
 import { sendAfricasTalkingSms } from '@/lib/sms';
 import { verifyTurnstileToken } from '@/lib/auth/turnstile';
+import { sendOneSignalPushNotification } from '@/lib/notifications/onesignal';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -1080,6 +1081,16 @@ async function handler(request, ctx) {
           INSERT INTO raffles (category_id, title, slug, description, ticket_price, currency, max_tickets, tickets_sold, type, status, hero_image_url, starts_at, ends_at)
           VALUES ($1,$2,$3,$4,$5,$6,$7,0,$8,'ACTIVE',$9, now(), now() + ($10 || ' days')::interval) RETURNING *
         `, [cat?.id || null, title, slug, description, ticket_price, currency, max_tickets, type, hero_image_url, String(ends_in_days)]);
+
+        // 1. Notification automatique OneSignal : Nouveau Round créé
+        if (row) {
+          sendOneSignalPushNotification({
+            title: `🆕 Nouveau Round : ${row.title} !`,
+            message: `Tentez votre chance dès maintenant pour remporter le lot pour 1$ sur Punchy 🥊`,
+            url: `https://punchyplay.com/raffles/${row.slug}`,
+          }).catch((e: any) => console.warn('[OneSignal New Raffle Push Error]', e?.message));
+        }
+
         return json(row);
       }
 
@@ -1087,7 +1098,44 @@ async function handler(request, ctx) {
       if (segs[1] === 'raffles' && segs[3] === 'draw' && method === 'POST') {
         const id = segs[2];
         const { rows } = await query('SELECT * FROM execute_fair_raffle_draw($1, $2)', [id, 'DEFMAKS_1USD_RAFFLE']);
-        return json(rows[0] || null);
+        const drawResult = rows[0] || null;
+
+        // 2. Notification automatique OneSignal : Tirage certifié & Vainqueur
+        if (drawResult) {
+          try {
+            const raffle = await one('SELECT * FROM raffles WHERE id=$1', [id]);
+            const winnerTicket = await one(`
+              SELECT t.*, u.phone_number 
+              FROM tickets t 
+              LEFT JOIN users u ON u.id = t.user_id 
+              WHERE t.id = $1
+            `, [drawResult.winning_ticket_id || drawResult.ticket_id]);
+
+            const ticketNum = winnerTicket?.ticket_number || drawResult.winning_ticket_number || 'gagnant';
+            const winnerPhone = winnerTicket?.phone_number || winnerTicket?.phone;
+
+            // Notification ciblée au grand gagnant
+            if (winnerPhone) {
+              sendOneSignalPushNotification({
+                title: '🎉 CHAMPION ! TU AS GAGNÉ !',
+                message: `Ton Punch #${ticketNum} remporte le Round ${raffle?.title || ''} ! Connecte-toi pour réclamer ton gain 🏆`,
+                url: 'https://punchyplay.com/my-tickets',
+                includeExternalUserIds: [winnerPhone],
+              }).catch(() => {});
+            }
+
+            // Notification d'annonce publique à toute la communauté
+            sendOneSignalPushNotification({
+              title: `🏆 Le Vainqueur du Round ${raffle?.title || ''} est connu !`,
+              message: `Le Punch #${ticketNum} est le grand gagnant certifié. Consultez les résultats en direct.`,
+              url: `https://punchyplay.com/transparency/${id}`,
+            }).catch(() => {});
+          } catch (notifErr: any) {
+            console.warn('[Draw Notification Error]', notifErr?.message);
+          }
+        }
+
+        return json(drawResult);
       }
 
       // POST /api/admin/raffles/:id/media
@@ -1108,6 +1156,16 @@ async function handler(request, ctx) {
         const id = segs[2];
         const { status } = await request.json();
         const row = await one('UPDATE raffles SET status=$1, updated_at=now() WHERE id=$2 RETURNING *', [status, id]);
+
+        // 3. Notification automatique OneSignal : Coup d'envoi si Round passe à ACTIVE
+        if (status === 'ACTIVE' && row) {
+          sendOneSignalPushNotification({
+            title: `🚀 Coup d'envoi : ${row.title} !`,
+            message: `Les réservations sont ouvertes ! Réservez vos Punches avant que le Round ne soit complet 🔥`,
+            url: `https://punchyplay.com/raffles/${row.slug}`,
+          }).catch((e: any) => console.warn('[OneSignal Status Push Error]', e?.message));
+        }
+
         return json(row);
       }
     }
