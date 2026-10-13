@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-// Initialisation de la connexion Neon (PostgreSQL)
-const sql = neon(process.env.DATABASE_URL!);
+export const dynamic = 'force-dynamic';
+
+function getSql() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL is not defined');
+  return neon(url);
+}
 
 export async function POST(request: Request) {
   try {
+    const sql = getSql();
     const body = await request.json();
 
     // Extraction uniforme des données (support direct TwigaPaie + Relais Proxy DefMaks)

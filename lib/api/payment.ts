@@ -3,8 +3,9 @@ import { formatDRCPhone } from '@/lib/auth/actions';
 export interface InitiatePaymentParams {
   raffle_slug: string;
   quantity: number;
-  phone_number: string;
+  phone_number: string; // Numéro Mobile Money pour le débit (Payeur)
   operator: string;
+  user_phone?: string;  // Numéro du compte utilisateur connecté qui reçoit les Punches (Bénéficiaire)
   full_name?: string;
 }
 
@@ -17,12 +18,15 @@ export async function initiatePayment(params: InitiatePaymentParams) {
     throw new Error('Veuillez entrer un numéro RDC valide (ex: 0820000000 ou +243820000000)');
   }
 
+  const formattedUserPhone = params.user_phone ? formatDRCPhone(params.user_phone) : formattedPhone;
+
   const res = await fetch('/api/payment/initiate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...params,
       phone_number: formattedPhone,
+      user_phone: formattedUserPhone,
     }),
   });
 
@@ -34,6 +38,7 @@ export async function initiatePayment(params: InitiatePaymentParams) {
   return {
     ...data,
     formattedPhone,
+    formattedUserPhone,
   };
 }
 

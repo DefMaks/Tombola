@@ -494,10 +494,12 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
   const [isProdMode, setIsProdMode] = useState(true);
   const [tickets, setTickets] = useState([]);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [loggedInPhone, setLoggedInPhone] = useState('');
 
   useEffect(() => {
     const saved = safeStorage.getItem('user_phone');
     if (saved) {
+      setLoggedInPhone(saved);
       let clean = saved.replace(/\D/g, '');
       if (clean.startsWith('243')) clean = clean.slice(3);
       if (clean.startsWith('0')) clean = clean.slice(1);
@@ -512,6 +514,7 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
         setAutoDetected(false);
       }
     } else {
+      setLoggedInPhone('');
       setPhoneDigits('');
       setOperator('');
       setAutoDetected(false);
@@ -601,12 +604,16 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
         raffle_slug: raffle.slug,
         quantity,
         phone_number: fullPhone,
+        user_phone: loggedInPhone || fullPhone,
         operator,
       });
       return data;
     },
     onSuccess: (data) => {
-      safeStorage.setItem('user_phone', data.formattedPhone || fullPhone);
+      // Ne sauvegarder dans safeStorage que si l'utilisateur n'était pas déjà connecté
+      if (!loggedInPhone) {
+        safeStorage.setItem('user_phone', data.formattedPhone || fullPhone);
+      }
       setTx(data.transaction);
       setIsProdMode(data.is_prod ?? true);
       setStep('ussd');
@@ -690,6 +697,14 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                       className="w-full h-full bg-transparent px-3 text-base font-bold font-mono tracking-wider focus:outline-none placeholder:text-muted-foreground/40 placeholder:font-normal"
                     />
                   </div>
+                  {loggedInPhone && fullPhone !== loggedInPhone && phoneDigits.length === 9 && (
+                    <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2 shadow-sm">
+                      <span className="text-base leading-none">💡</span>
+                      <span>
+                        Débit sur ce numéro — Vos Punches seront bien crédités sur votre compte (<b>{loggedInPhone}</b>).
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -807,6 +822,11 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
                   Entrez votre code PIN Mobile Money pour confirmer le paiement de{' '}
                   <b className="text-amber-500">{tx?.amount ? `${tx.amount} ${tx.currency}` : `$${total.toFixed(2)}`}</b>.
                 </p>
+                {loggedInPhone && fullPhone !== loggedInPhone && (
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 max-w-xs mx-auto text-center font-medium">
+                    Vos Punches seront réservés sur votre compte : <b>{loggedInPhone}</b>
+                  </div>
+                )}
               </div>
 
               <div className="p-4 rounded-2xl bg-card border border-border space-y-3 text-left">

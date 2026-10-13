@@ -426,7 +426,7 @@ async function handler(request, ctx) {
       // POST /api/payment/initiate
       if (segs[1] === 'initiate' && method === 'POST') {
         const body = await request.json();
-        const { raffle_slug, quantity, phone_number, operator, full_name } = body;
+        const { raffle_slug, quantity, phone_number, operator, full_name, user_phone } = body;
         const qty = Math.max(1, Math.min(100, parseInt(quantity, 10) || 1));
         if (!raffle_slug || !phone_number || !operator) return err('Champs requis manquants');
 
@@ -438,9 +438,13 @@ async function handler(request, ctx) {
         const available = raffle.max_tickets - raffle.tickets_sold;
         if (qty > available) return err(`Seulement ${available} ${available > 1 ? 'Punches disponibles' : 'Punch disponible'}`);
 
-        const user = await upsertUser(phone_number, full_name);
+        // Beneficiary user (account that will receive the tickets)
+        // If user_phone is provided (logged-in user), the tickets belong to this account.
+        // Otherwise fallback to payer's phone_number (guest checkout).
+        const beneficiaryPhone = user_phone ? String(user_phone).trim() : String(phone_number).trim();
+        const user = await upsertUser(beneficiaryPhone, full_name);
 
-        // Check territorial eligibility (Commune vs City)
+        // Check territorial eligibility for the beneficiary (Commune vs City)
         if (raffle.scope_type === 'COMMUNE' && raffle.target_commune) {
           const userCommune = user?.commune ? String(user.commune).trim().toLowerCase() : '';
           const targetCommune = String(raffle.target_commune).trim().toLowerCase();
