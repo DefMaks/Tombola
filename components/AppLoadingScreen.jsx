@@ -1,11 +1,26 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AppLoadingScreen({ isVisible = true, message = 'Chargement des rounds...' }) {
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (isVisible) {
+      setTimedOut(false);
+      const timer = setTimeout(() => {
+        setTimedOut(true);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
+
+  const shouldDisplay = isVisible && !timedOut;
+
   return (
     <AnimatePresence>
-      {isVisible && (
+      {shouldDisplay && (
         <motion.div
           key="app-loading-screen"
           initial={{ opacity: 1 }}

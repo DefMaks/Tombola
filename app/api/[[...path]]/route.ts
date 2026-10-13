@@ -31,6 +31,8 @@ function slugify(str) {
     .slice(0, 60);
 }
 
+let _lastRafflesAutoCheck = 0;
+
 async function handler(request, ctx) {
   const params = await ctx.params;
   const p = params?.path || [];
@@ -228,33 +230,36 @@ async function handler(request, ctx) {
 
     // -------- RAFFLES -------
     if (segs[0] === 'raffles') {
-      // Auto-activation à la volée des tombolas programmées dont l'heure de début est passée
-      try {
-        await query(`
-          UPDATE raffles
-          SET status = 'ACTIVE', updated_at = now()
-          WHERE status = 'SCHEDULED'
-            AND (starts_at IS NULL OR starts_at <= now())
-            AND (ends_at IS NULL OR ends_at > now())
-            AND (max_tickets = 0 OR tickets_sold < max_tickets)
-        `);
-      } catch (autoActivateErr: any) {
-        console.warn('Auto-activate raffles background warning:', autoActivateErr?.message);
-      }
+      // Auto-activation et auto-clôture à la volée throttlées à max 1x par minute pour éviter les verrous de BDD
+      const nowMs = Date.now();
+      if (nowMs - _lastRafflesAutoCheck > 60_000) {
+        _lastRafflesAutoCheck = nowMs;
+        try {
+          await query(`
+            UPDATE raffles
+            SET status = 'ACTIVE', updated_at = now()
+            WHERE status = 'SCHEDULED'
+              AND (starts_at IS NULL OR starts_at <= now())
+              AND (ends_at IS NULL OR ends_at > now())
+              AND (max_tickets = 0 OR tickets_sold < max_tickets)
+          `);
+        } catch (autoActivateErr: any) {
+          console.warn('Auto-activate raffles background warning:', autoActivateErr?.message);
+        }
 
-      // Auto-clôture à la volée des tombolas expirées
-      try {
-        await query(`
-          UPDATE raffles
-          SET status = 'COMPLETED', updated_at = now()
-          WHERE status = 'ACTIVE'
-            AND (
-              (ends_at IS NOT NULL AND ends_at <= now())
-              OR (max_tickets > 0 AND tickets_sold >= max_tickets)
-            )
-        `);
-      } catch (autoCloseErr: any) {
-        console.warn('Auto-close raffles background warning:', autoCloseErr?.message);
+        try {
+          await query(`
+            UPDATE raffles
+            SET status = 'COMPLETED', updated_at = now()
+            WHERE status = 'ACTIVE'
+              AND (
+                (ends_at IS NOT NULL AND ends_at <= now())
+                OR (max_tickets > 0 AND tickets_sold >= max_tickets)
+              )
+          `);
+        } catch (autoCloseErr: any) {
+          console.warn('Auto-close raffles background warning:', autoCloseErr?.message);
+        }
       }
 
       // GET /api/raffles

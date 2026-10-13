@@ -92,7 +92,13 @@ export default function PhoneAuthModal({
       onSuccess?.(res.phone);
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || 'Échec de connexion');
+      const msg = err.message || 'Échec de connexion';
+      toast.error(msg);
+      if (msg.toLowerCase().includes('aucun mot de passe') || msg.toLowerCase().includes('otp')) {
+        setMode('reset');
+      } else if (msg.toLowerCase().includes('aucun compte')) {
+        setMode('signup');
+      }
     } finally {
       setLoading(false);
     }

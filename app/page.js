@@ -749,9 +749,26 @@ export default function HomePage() {
             </div>
           )
         ) : filteredActiveRaffles.length === 0 && (typeFilter !== 'ALL' || filteredUpcomingRaffles.length === 0) ? (
-          <div className="text-center py-8 px-4 rounded-2xl bg-card border border-border">
-            <Ticket className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-medium text-muted-foreground">Aucun round disponible dans cette catégorie pour le moment.</p>
+          <div className="text-center py-8 px-4 rounded-2xl bg-card border border-border space-y-3">
+            <Ticket className="h-8 w-8 text-muted-foreground mx-auto opacity-50" />
+            <p className="text-sm font-medium text-muted-foreground">
+              {scopeFilter === 'COMMUNE' && userProfile?.commune
+                ? `Aucun round exclusif à la commune de ${userProfile.commune} pour le moment.`
+                : 'Aucun round disponible dans ce filtre pour le moment.'}
+            </p>
+            {(scopeFilter !== 'ALL' || typeFilter !== 'ALL') && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setScopeFilter('ALL');
+                  setTypeFilter('ALL');
+                }}
+                className="rounded-xl border-amber-500/40 text-amber-400 hover:bg-amber-500/10 text-xs font-bold"
+              >
+                Voir tous les rounds de Kinshasa ({allActiveAndUpcoming.length})
+              </Button>
+            )}
           </div>
         ) : (
           <>
