@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LottieFlame from '@/components/LottieFlame';
 
 export const PALIERS = [20, 100, 200, 500];
 
@@ -15,39 +15,61 @@ export function PalierFireBadges({ count = 0, variant = 'compact', className }) 
 
   // Show 1 gray icon for the next upcoming palier if not all reached
   const showNextGray = reachedCount < PALIERS.length;
+  const isAllMax = reachedCount === PALIERS.length;
 
-  const sizeClass = variant === 'detailed' ? 'h-5 w-5' : 'h-3.5 w-3.5';
+  const pixelSize = variant === 'detailed' ? 22 : 16;
   const containerClass = variant === 'detailed' 
-    ? 'inline-flex items-center gap-1.5 p-2 bg-amber-500/10 border border-amber-500/25 rounded-xl shrink-0'
-    : 'inline-flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-xl shrink-0';
+    ? cn(
+        'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shrink-0 transition-all shadow-sm',
+        isAllMax 
+          ? 'bg-amber-500/20 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]' 
+          : 'bg-amber-500/10 border border-amber-500/25'
+      )
+    : cn(
+        'inline-flex items-center gap-1 px-2 py-0.5 rounded-xl shrink-0 transition-all',
+        isAllMax 
+          ? 'bg-amber-500/20 border border-amber-400/40 shadow-[0_0_8px_rgba(245,158,11,0.2)]' 
+          : 'bg-amber-500/10 border border-amber-500/20'
+      );
 
   return (
-    <div className={cn(containerClass, className)}>
-      {/* Reached colored fire icons */}
+    <div 
+      className={cn(containerClass, className)}
+      title={
+        reachedCount > 0 
+          ? `${reachedCount}/${PALIERS.length} paliers atteints (${count} participations)` 
+          : `Premier palier à ${PALIERS[0]} participations`
+      }
+    >
+      {/* Reached animated Lottie fire icons */}
       {Array.from({ length: reachedCount }).map((_, i) => (
-        <Flame
-          key={`colored-${i}`}
+        <LottieFlame
+          key={`lottie-flame-${i}`}
+          size={pixelSize}
+          isMaxTier={i === 3} // 500+ tickets unlocks the ultimate tier
           title={`Palier ${PALIERS[i]} participations atteint !`}
-          className={cn(
-            sizeClass,
-            "text-amber-400 fill-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.85)] animate-pulse shrink-0"
-          )}
         />
       ))}
 
-      {/* Upcoming gray fire icon */}
+      {/* Upcoming locked gray fire icon */}
       {showNextGray && (
-        <Flame
-          key="upcoming-gray"
-          title={`Prochain palier : ${PALIERS[reachedCount]}`}
-          className={cn(
-            sizeClass,
-            "text-slate-500/40 fill-slate-700/20 stroke-slate-500/50 shrink-0"
-          )}
+        <LottieFlame
+          key="lottie-flame-upcoming"
+          size={pixelSize}
+          isGray={true}
+          title={`Prochain palier : ${PALIERS[reachedCount]} participations`}
         />
+      )}
+
+      {/* Optional detail label when in detailed variant */}
+      {variant === 'detailed' && (
+        <span className="text-xs font-black text-amber-400 ml-0.5 tracking-tight">
+          {isAllMax ? 'FEU MAX !' : `${count}/${PALIERS[reachedCount]}`}
+        </span>
       )}
     </div>
   );
 }
 
 export default PalierFireBadges;
+
