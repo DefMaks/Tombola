@@ -40,16 +40,21 @@ export async function sendOneSignalPushNotification(options: SendPushNotificatio
       payload.included_segments = options.segments || ['Total Subscriptions'];
     }
 
-    const response = await fetch('https://onesignal.com/api/v1/notifications', {
+    const authHeader = apiKey.startsWith('os_v2_') ? `Key ${apiKey}` : `Basic ${apiKey}`;
+
+    const response = await fetch('https://api.onesignal.com/notifications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Basic ${apiKey}`,
+        Authorization: authHeader,
       },
       body: JSON.stringify(payload),
     });
 
     const data = await response.json();
+    if (!response.ok) {
+      console.warn('[OneSignal Response Error]', response.status, data);
+    }
     return { success: response.ok, data };
   } catch (err: any) {
     console.error('[OneSignal Send Push Error]', err.message);
