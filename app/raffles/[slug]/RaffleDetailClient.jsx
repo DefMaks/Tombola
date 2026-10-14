@@ -64,34 +64,28 @@ function detectDRCOperator(rawInput) {
   return null;
 }
 
-function Countdown({ endsAt }) {
-  const [remaining, setRemaining] = useState('');
-  const [isUrgent, setIsUrgent] = useState(false);
+function Countdown({ endsAt, targetDate, isUpcoming = false }) {
+  const finalDate = targetDate || endsAt;
+  const { formatted, isFinished, isUrgent } = useCountdown(finalDate);
 
-  useEffect(() => {
-    if (!endsAt) return;
-    const tick = () => {
-      const diff = new Date(endsAt).getTime() - Date.now();
-      if (diff <= 0) {
-        setRemaining('Terminé');
-        setIsUrgent(false);
-        return;
-      }
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor((diff / 3600000) % 24);
-      const m = Math.floor((diff / 60000) % 60);
-      const s = Math.floor((diff / 1000) % 60);
-      setIsUrgent(d === 0 && h < 2);
-      setRemaining(d > 0 ? `${d}j ${h}h ${m}m` : `${h}h ${m}m ${s}s`);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [endsAt]);
+  if (isFinished) {
+    return (
+      <span className="font-mono font-bold tracking-tight text-muted-foreground">
+        {isUpcoming ? "Coup d'envoi !" : 'Terminé'}
+      </span>
+    );
+  }
 
   return (
-    <span className={cn("font-mono font-bold tracking-tight", isUrgent ? "text-rose-500 animate-pulse" : "text-amber-500 dark:text-amber-400")}>
-      {remaining}
+    <span className={cn(
+      "font-mono font-bold tracking-tight",
+      isUpcoming
+        ? "text-blue-400"
+        : isUrgent
+          ? "text-rose-500 animate-pulse"
+          : "text-amber-500 dark:text-amber-400"
+    )}>
+      {isUpcoming ? `Dans ${formatted}` : formatted}
     </span>
   );
 }
@@ -351,13 +345,19 @@ export default function RaffleDetailClient({ slug }) {
           </div>
 
           <Progress value={pct} className="h-2" />
-          {isActive && !isUpcoming && (
+          {isUpcoming ? (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-blue-400 bg-blue-500/10 py-1.5 px-3 rounded-xl border border-blue-500/20 font-bold">
+              <Clock className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+              <span>Coup d&apos;envoi :</span>
+              <Countdown targetDate={raffle.starts_at} isUpcoming={true} />
+            </div>
+          ) : isActive ? (
             <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground bg-secondary/40 py-1.5 px-3 rounded-xl border border-border/40">
               <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
               <span className="font-medium">Temps restant :</span>
               <Countdown endsAt={raffle.ends_at} />
             </div>
-          )}
+          ) : null}
 
           {/* Description */}
           <div className="pt-3 border-t border-border/50 space-y-1.5">

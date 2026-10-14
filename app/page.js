@@ -69,7 +69,14 @@ function Countdown({ endsAt, targetDate, isUpcoming = false }) {
   }
 
   return (
-    <span className={cn("font-mono font-bold text-xs tracking-tight", isUrgent ? "text-rose-500 animate-pulse" : "text-amber-500 dark:text-amber-400")}>
+    <span className={cn(
+      "font-mono font-bold text-xs tracking-tight",
+      isUpcoming
+        ? "text-blue-400"
+        : isUrgent
+          ? "text-rose-500 animate-pulse"
+          : "text-amber-500 dark:text-amber-400"
+    )}>
       {isUpcoming ? `Dans ${formatted}` : formatted}
     </span>
   );
@@ -394,26 +401,35 @@ function PerspectiveRaffleCarousel({ raffles }) {
                   {/* Card Content */}
                   <div className="p-3.5 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <PalierFireBadges count={raffle.tickets_sold} variant="compact" />
-                      {!isCompleted && (
+                      <PalierFireBadges count={isUpcoming ? 0 : raffle.tickets_sold} variant="compact" />
+                      {isUpcoming ? (
+                        <span className="flex items-center gap-1 text-xs font-bold text-blue-400">
+                          <Clock className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                          <Countdown targetDate={raffle.starts_at} isUpcoming={true} />
+                        </span>
+                      ) : !isCompleted ? (
                         <span className="text-muted-foreground flex items-center gap-1 text-xs font-medium">
                           <Clock className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                           <Countdown endsAt={raffle.ends_at} />
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     <Progress value={pct} className="h-2" />
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex items-center gap-2">
                         <div className="text-2xl font-black text-primary">{Number(raffle.ticket_price).toFixed(0)}$</div>
-                        {!isCompleted && Number(raffle.ticket_price) !== 1 && (
+                        {!isCompleted && !isUpcoming && Number(raffle.ticket_price) !== 1 && (
                           <div className="text-[10px] font-black uppercase text-amber-400 leading-tight bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-lg">
                             <div>Maximise tes</div>
                             <div>Chances !</div>
                           </div>
                         )}
                       </div>
-                      {!isCompleted ? (
+                      {isUpcoming ? (
+                        <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-bold shadow-sm">
+                          <Lock className="h-3 w-3 text-blue-400" /> Bientôt <ArrowRight className="h-3 w-3" />
+                        </div>
+                      ) : !isCompleted ? (
                         <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm">
                           Participer <ArrowRight className="h-3 w-3" />
                         </div>
