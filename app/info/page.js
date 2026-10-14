@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Info, 
-  FileText, 
-  Mail, 
+import {
+  Info,
+  FileText,
+  Mail,
   ArrowLeft, MapPin,
-  Send, 
-  Loader2, 
-  CheckCircle2, 
-  ShieldCheck, 
+  Send,
+  Loader2,
+  CheckCircle2,
+  ShieldCheck,
   Building2,
   Trash2,
   ShieldAlert
@@ -131,11 +131,10 @@ export default function InfoPage() {
           <button
             type="button"
             onClick={() => setActiveTab('about')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
-              activeTab === 'about'
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${activeTab === 'about'
                 ? 'bg-amber-500 text-slate-950 shadow-md scale-[1.02]'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <Info className="h-4 w-4 shrink-0" />
             <span className="truncate">À propos</span>
@@ -144,11 +143,10 @@ export default function InfoPage() {
           <button
             type="button"
             onClick={() => setActiveTab('terms')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
-              activeTab === 'terms'
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${activeTab === 'terms'
                 ? 'bg-amber-500 text-slate-950 shadow-md scale-[1.02]'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <FileText className="h-4 w-4 shrink-0" />
             <span className="truncate">Conditions</span>
@@ -157,11 +155,10 @@ export default function InfoPage() {
           <button
             type="button"
             onClick={() => setActiveTab('delete_account')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
-              activeTab === 'delete_account'
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${activeTab === 'delete_account'
                 ? 'bg-rose-500 text-white shadow-md scale-[1.02]'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <Trash2 className="h-4 w-4 shrink-0" />
             <span className="truncate">Suppression</span>
@@ -170,11 +167,10 @@ export default function InfoPage() {
           <button
             type="button"
             onClick={() => setActiveTab('contact')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${
-              activeTab === 'contact'
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[11px] font-bold transition-all ${activeTab === 'contact'
                 ? 'bg-amber-500 text-slate-950 shadow-md scale-[1.02]'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <Mail className="h-4 w-4 shrink-0" />
             <span className="truncate">Contact</span>
@@ -446,7 +442,7 @@ export default function InfoPage() {
                       </label>
                       <Input
                         type="text"
-                        placeholder="Ex: Alain Kalala"
+                        placeholder="Ex: Alain Zola"
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                         required

@@ -230,8 +230,8 @@ export default function PhoneAuthModal({
             {mode === 'signin'
               ? 'Connectez-vous instantanément avec votre numéro et mot de passe.'
               : mode === 'signup'
-              ? 'Renseignez vos informations. Un SMS de vérification sera envoyé.'
-              : 'Entrez votre numéro pour recevoir un code OTP et réinitialiser votre accès.'}
+                ? 'Renseignez vos informations. Un SMS de vérification sera envoyé.'
+                : 'Entrez votre numéro pour recevoir un code OTP et réinitialiser votre accès.'}
           </p>
         </DialogHeader>
 
@@ -239,17 +239,15 @@ export default function PhoneAuthModal({
         <div className="grid grid-cols-2 p-1 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs font-bold my-2">
           <button
             onClick={() => setMode('signin')}
-            className={`py-2 rounded-xl transition-all ${
-              mode === 'signin' ? 'bg-amber-500 text-slate-950 shadow-md font-black' : 'text-muted-foreground hover:text-foreground'
-            }`}
+            className={`py-2 rounded-xl transition-all ${mode === 'signin' ? 'bg-amber-500 text-slate-950 shadow-md font-black' : 'text-muted-foreground hover:text-foreground'
+              }`}
           >
             Se Connecter
           </button>
           <button
             onClick={() => setMode('signup')}
-            className={`py-2 rounded-xl transition-all ${
-              mode === 'signup' ? 'bg-amber-500 text-slate-950 shadow-md font-black' : 'text-muted-foreground hover:text-foreground'
-            }`}
+            className={`py-2 rounded-xl transition-all ${mode === 'signup' ? 'bg-amber-500 text-slate-950 shadow-md font-black' : 'text-muted-foreground hover:text-foreground'
+              }`}
           >
             S&apos;Inscrire
           </button>
@@ -346,7 +344,7 @@ export default function PhoneAuthModal({
                     <User className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="text"
-                      placeholder="Ex: Jean Mukendi"
+                      placeholder="Ex: Jean Omba"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="pl-10 h-12 rounded-2xl bg-background/50 border-amber-500/30 text-base"

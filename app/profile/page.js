@@ -354,9 +354,9 @@ export default function ProfilePage() {
           <Edit3 className="h-4 w-4 text-amber-400/80 shrink-0" />
         </button>
 
-        <Link 
-          href="/my-tickets" 
-          prefetch={true} 
+        <Link
+          href="/my-tickets"
+          prefetch={true}
           className="flex items-center gap-3.5 p-3.5 bg-card border border-border rounded-2xl hover:border-amber-500/50 transition-all shadow-sm group"
         >
           <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 shrink-0 group-hover:bg-amber-500/20 transition-colors">
@@ -451,7 +451,7 @@ export default function ProfilePage() {
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase block mb-1.5">Nom complet</label>
               <Input
-                placeholder="Ex: Jean Mukendi"
+                placeholder="Ex: Jean Omba"
                 value={fullNameInput}
                 onChange={(e) => setFullNameInput(e.target.value)}
                 className="h-12 rounded-xl text-base"
