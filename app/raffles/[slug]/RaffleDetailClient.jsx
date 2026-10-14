@@ -509,6 +509,7 @@ export default function RaffleDetailClient({ slug }) {
 function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequireAuth, onSuccess }) {
   const [step, setStep] = useState('form');
   const [quantity, setQuantity] = useState(1);
+  const total = quantity * Number(raffle?.ticket_price || 0);
   const [phoneDigits, setPhoneDigits] = useState('');
   const [operator, setOperator] = useState('');
   const [ageVerified, setAgeVerified] = useState(false);
@@ -660,7 +661,6 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
     onError: (e) => toast.error(e.message),
   });
 
-  const total = quantity * Number(raffle.ticket_price);
   const reset = () => { setStep('form'); setTx(null); setTickets([]); };
 
   const handleTriggerClick = () => {

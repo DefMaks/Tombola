@@ -58,6 +58,9 @@ export default function OneSignalInitializer() {
     <Script
       src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
       strategy="afterInteractive"
+      onError={(e) => {
+        console.warn('[OneSignal SDK load failed or offline]');
+      }}
     />
   );
 }
