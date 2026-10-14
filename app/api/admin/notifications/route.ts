@@ -142,12 +142,12 @@ export async function POST(req: NextRequest) {
 
       // OneSignal Web Push dispatch
       const fullUrl = finalUrl ? `https://punchyplay.com${finalUrl.startsWith('/') ? finalUrl : '/' + finalUrl}` : 'https://punchyplay.com';
-      await sendOneSignalPushNotification({
+      const oneSignalResult = await sendOneSignalPushNotification({
         title: finalTitle,
         message: finalBody,
         url: fullUrl,
         filters: target_commune ? [{ field: 'tag', key: 'commune', relation: '=', value: target_commune }] : undefined,
-      }).catch((e: any) => console.warn('[OneSignal Flash Warning]', e?.message));
+      }).catch((e: any) => ({ success: false, error: e?.message }));
 
       // Save to logs (Journal de bord)
       const logEntry = await createPushLog({
@@ -167,7 +167,8 @@ export async function POST(req: NextRequest) {
         message: 'Notification Flash diffusée avec succès !',
         log: logEntry,
         recipients_count: dispatchResult.recipients_count,
-      });
+        onesignal: oneSignalResult,
+      }, { headers: corsHeaders });
     }
 
     // 5. Déclenchement automatique / simulation du créneau programmé (Matin ou Soir)
