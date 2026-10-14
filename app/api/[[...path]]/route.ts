@@ -306,7 +306,7 @@ async function handler(request, ctx) {
         try {
           await query(`
             UPDATE raffles
-            SET status = 'COMPLETED', updated_at = now()
+            SET status = 'PENDING_DRAW', updated_at = now()
             WHERE status = 'ACTIVE'
               AND (
                 (ends_at IS NOT NULL AND ends_at <= now())

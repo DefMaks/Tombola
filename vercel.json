@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/draws",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/punchy/reconcile-payments",
+      "schedule": "*/10 * * * *"
+    }
+  ]
+}
