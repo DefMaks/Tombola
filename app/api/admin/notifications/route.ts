@@ -17,6 +17,16 @@ import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders });
+}
+
 export async function GET() {
   try {
     const settings = await getPushSettings();
