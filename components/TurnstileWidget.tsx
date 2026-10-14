@@ -39,12 +39,21 @@ export default function TurnstileWidget({
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAFV5K-uDL0Wd28JU';
+
+  // Keep callback refs stable across re-renders to prevent widget destruction on keystrokes
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+  const onExpireRef = useRef(onExpire);
+  onSuccessRef.current = onSuccess;
+  onErrorRef.current = onError;
+  onExpireRef.current = onExpire;
 
   useEffect(() => {
     if (!siteKey || !containerRef.current) return;
 
     let isMounted = true;
+    let pollInterval: NodeJS.Timeout | null = null;
 
     function renderWidget() {
       if (!window.turnstile || !containerRef.current || !isMounted) return;
@@ -54,26 +63,30 @@ export default function TurnstileWidget({
         } catch (_) {}
       }
 
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
-        sitekey: siteKey,
-        callback: (token: string) => {
-          if (isMounted) onSuccess(token);
-        },
-        'error-callback': (err: any) => {
-          if (isMounted && onError) onError(err);
-        },
-        'expired-callback': () => {
-          if (isMounted && onExpire) onExpire();
-        },
-        theme,
-        size: 'flexible',
-      });
+      try {
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
+          sitekey: siteKey,
+          callback: (token: string) => {
+            if (isMounted) onSuccessRef.current?.(token);
+          },
+          'error-callback': (err: any) => {
+            if (isMounted && onErrorRef.current) onErrorRef.current(err);
+          },
+          'expired-callback': () => {
+            if (isMounted && onExpireRef.current) onExpireRef.current();
+          },
+          theme,
+          size: 'normal',
+        });
+      } catch (e) {
+        console.warn('[Turnstile render error]', e);
+      }
     }
 
     if (window.turnstile) {
       renderWidget();
     } else {
-      const existingScript = document.getElementById('cf-turnstile-script');
+      const existingScript = document.getElementById('cf-turnstile-script') as HTMLScriptElement | null;
       if (!existingScript) {
         const script = document.createElement('script');
         script.id = 'cf-turnstile-script';
@@ -85,19 +98,26 @@ export default function TurnstileWidget({
         };
         document.head.appendChild(script);
       } else {
-        existingScript.addEventListener('load', renderWidget);
+        // Poll for window.turnstile in case script already finished loading
+        pollInterval = setInterval(() => {
+          if (window.turnstile) {
+            if (pollInterval) clearInterval(pollInterval);
+            if (isMounted) renderWidget();
+          }
+        }, 150);
       }
     }
 
     return () => {
       isMounted = false;
+      if (pollInterval) clearInterval(pollInterval);
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.remove(widgetIdRef.current);
         } catch (_) {}
       }
     };
-  }, [siteKey, onSuccess, onError, onExpire, theme]);
+  }, [siteKey, theme]);
 
   if (!siteKey) {
     return null;

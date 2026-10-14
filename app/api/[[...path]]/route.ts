@@ -67,12 +67,14 @@ async function handler(request, ctx) {
         if (cleaned.startsWith('0')) cleaned = '243' + cleaned.slice(1);
         if (!cleaned.startsWith('+')) cleaned = '+' + cleaned;
 
-        // 1. Vérification Cloudflare Turnstile anti-bot
+        // 1. Vérification Cloudflare Turnstile anti-bot (si présent)
         const turnstileToken = payload.turnstileToken || payload.turnstile_token;
         const clientIp = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-        const turnstileRes = await verifyTurnstileToken(turnstileToken, clientIp);
-        if (!turnstileRes.success) {
-          return err(turnstileRes.error || 'Vérification Cloudflare Turnstile échouée', 403);
+        if (turnstileToken) {
+          const turnstileRes = await verifyTurnstileToken(turnstileToken, clientIp);
+          if (!turnstileRes.success) {
+            return err(turnstileRes.error || 'Vérification Cloudflare Turnstile échouée', 403);
+          }
         }
 
         // 2. Protection Anti-Abus & Rate Limiting (économise le solde SMS Africa's Talking)
@@ -93,6 +95,18 @@ async function handler(request, ctx) {
           );
           if (Number(hourly?.count || 0) >= 4) {
             return err('Trop de demandes d\'OTP pour ce numéro. Veuillez patienter 1 heure avant de réessayer.', 429);
+          }
+
+          // Max 12 demandes par heure par IP pour éviter le spam multi-numéros
+          if (clientIp) {
+            if (!(global as any).__ipOtpRateLimit) (global as any).__ipOtpRateLimit = new Map();
+            const now = Date.now();
+            const ipEntries = ((global as any).__ipOtpRateLimit.get(clientIp) || []).filter((t: number) => now - t < 3600000);
+            if (ipEntries.length >= 12) {
+              return err('Trop de demandes d\'OTP depuis cette connexion. Veuillez patienter.', 429);
+            }
+            ipEntries.push(now);
+            (global as any).__ipOtpRateLimit.set(clientIp, ipEntries);
           }
         } catch (rlErr: any) {
           console.warn('[Rate Limit Warning]', rlErr?.message);
