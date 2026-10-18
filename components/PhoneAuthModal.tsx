@@ -36,6 +36,7 @@ export default function PhoneAuthModal({
   const [phoneDigits, setPhoneDigits] = useState('');
   const [fullName, setFullName] = useState('');
   const [commune, setCommune] = useState('');
+  const [gender, setGender] = useState<'M' | 'F' | ''>('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -53,6 +54,7 @@ export default function PhoneAuthModal({
       setResetStep('request');
       setOtpCode('');
       setCommune('');
+      setGender('');
       setPassword('');
       setNewPassword('');
       setTurnstileToken('');
@@ -115,6 +117,10 @@ export default function PhoneAuthModal({
       toast.error('Veuillez renseigner votre Nom complet');
       return;
     }
+    if (!gender) {
+      toast.error('Veuillez sélectionner votre genre (Femme ou Homme)');
+      return;
+    }
     if (!phoneDigits || phoneDigits.length < 8) {
       toast.error('Veuillez entrer un numéro RDC valide (ex: 0820000000)');
       return;
@@ -154,7 +160,7 @@ export default function PhoneAuthModal({
     }
     setLoading(true);
     try {
-      const res = await signInWithPhoneOtp(fullPhone, otpCode, fullName, password, commune, 'Kinshasa');
+      const res = await signInWithPhoneOtp(fullPhone, otpCode, fullName, password, commune, 'Kinshasa', gender);
       toast.success(`Inscription réussie ! Bienvenue résident de ${commune}.`);
       trackLogin('signup_otp');
       onSuccess?.(res.phone);
@@ -353,6 +359,46 @@ export default function PhoneAuthModal({
                 </div>
 
                 <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-extrabold uppercase text-amber-400 tracking-wider flex items-center gap-1">
+                      <User className="h-3.5 w-3.5 text-amber-400" />
+                      Genre
+                    </label>
+                    <span className="text-[10px] text-amber-400/80 font-medium">Requis · Non modifiable</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setGender('F')}
+                      className={`h-12 rounded-2xl border flex items-center justify-center gap-2 font-bold text-sm transition-all cursor-pointer ${
+                        gender === 'F'
+                          ? 'bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/40 shadow-md font-black'
+                          : 'bg-background/80 border-amber-500/30 text-muted-foreground hover:text-foreground hover:border-amber-500/50'
+                      }`}
+                    >
+                      <span className="text-base font-black">♀</span>
+                      <span>Femme (F)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGender('M')}
+                      className={`h-12 rounded-2xl border flex items-center justify-center gap-2 font-bold text-sm transition-all cursor-pointer ${
+                        gender === 'M'
+                          ? 'bg-blue-500/20 border-blue-500 text-blue-300 ring-2 ring-blue-500/40 shadow-md font-black'
+                          : 'bg-background/80 border-amber-500/30 text-muted-foreground hover:text-foreground hover:border-amber-500/50'
+                      }`}
+                    >
+                      <span className="text-base font-black">♂</span>
+                      <span>Homme (M)</span>
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/80 mt-1 flex items-center gap-1">
+                    <Lock className="h-3 w-3 text-amber-400 shrink-0" />
+                    Définitif dès l&apos;inscription. Utilisé pour vos titres de victoire (Punché / Punchée).
+                  </p>
+                </div>
+
+                <div>
                   <label className="text-xs font-extrabold uppercase text-amber-400 tracking-wider block mb-1.5">
                     Numéro de téléphone RDC (+243)
                   </label>
@@ -431,7 +477,7 @@ export default function PhoneAuthModal({
 
                 <Button
                   onClick={handleSignUpRequestOtp}
-                  disabled={loading || !fullName || !phoneDigits || !commune || password.length < 6}
+                  disabled={loading || !fullName || !phoneDigits || !gender || !commune || password.length < 6}
                   className="w-full h-12 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20"
                 >
                   {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <KeyRound className="h-5 w-5 mr-2" />}

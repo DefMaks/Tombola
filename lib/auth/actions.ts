@@ -70,7 +70,8 @@ export async function signInWithPhoneOtp(
   fullName?: string,
   password?: string,
   commune?: string,
-  city?: string
+  city?: string,
+  gender?: string
 ) {
   const formattedPhone = formatDRCPhone(rawPhone);
   const cleanCode = String(otpCode || '').trim();
@@ -89,6 +90,7 @@ export async function signInWithPhoneOtp(
       password: password || undefined,
       commune: commune || undefined,
       city: city || 'Kinshasa',
+      gender: gender || undefined,
     }),
   });
 

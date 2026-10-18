@@ -199,13 +199,15 @@ async function handler(request, ctx) {
         const nameToSet = fullName || 'Participant Punchy';
         const commune = payload.commune ? String(payload.commune).trim() : null;
         const city = payload.city ? String(payload.city).trim() : 'Kinshasa';
+        const rawGender = payload.gender ? String(payload.gender).trim().toUpperCase() : null;
+        const cleanGender = (rawGender === 'F' || rawGender === 'FEMME') ? 'F' : (rawGender === 'M' || rawGender === 'HOMME') ? 'M' : null;
         const lockUntil = commune ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString() : null;
 
         let user = await one('SELECT * FROM users WHERE phone_number=$1', [cleaned]);
         if (!user) {
           user = await one(
-            'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified, city, commune, commune_updated_at, commune_locked_until) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-            [cleaned, nameToSet, 'USER', passwordHash, true, city, commune, commune ? new Date().toISOString() : null, lockUntil]
+            'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified, city, commune, commune_updated_at, commune_locked_until, gender) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+            [cleaned, nameToSet, 'USER', passwordHash, true, city, commune, commune ? new Date().toISOString() : null, lockUntil, cleanGender]
           );
         } else {
           let updateFields: string[] = [];
@@ -217,6 +219,10 @@ async function handler(request, ctx) {
             params.push(commune); updateFields.push(`commune=$${params.length}`);
             params.push(new Date().toISOString()); updateFields.push(`commune_updated_at=$${params.length}`);
             params.push(lockUntil); updateFields.push(`commune_locked_until=$${params.length}`);
+          }
+          if (cleanGender && !user.gender) {
+            params.push(cleanGender);
+            updateFields.push(`gender=$${params.length}`);
           }
           params.push(true); updateFields.push(`is_verified=$${params.length}`);
 
@@ -684,9 +690,11 @@ async function handler(request, ctx) {
 
           if (!user) {
             const lockUntil = cleanCommune ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString() : null;
+            const rawBodyGender = body.gender !== undefined && body.gender !== null ? String(body.gender).trim().toUpperCase() : null;
+            const normalizedGender = rawBodyGender ? ((rawBodyGender === 'F' || rawBodyGender === 'FEMME') ? 'F' : (rawBodyGender === 'M' || rawBodyGender === 'HOMME') ? 'M' : null) : null;
             user = await one(
-              'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified, city, commune, commune_updated_at, commune_locked_until) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
-              [userPhone, full_name || 'Participant Punchy', 'USER', passwordHash, true, cleanCity, cleanCommune, cleanCommune ? new Date().toISOString() : null, lockUntil]
+              'INSERT INTO users (phone_number, full_name, role, password_hash, is_verified, city, commune, commune_updated_at, commune_locked_until, gender) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
+              [userPhone, full_name || 'Participant Punchy', 'USER', passwordHash, true, cleanCity, cleanCommune, cleanCommune ? new Date().toISOString() : null, lockUntil, normalizedGender]
             );
           } else {
             let updates = [];
@@ -699,6 +707,19 @@ async function handler(request, ctx) {
             if (passwordHash) {
               params.push(passwordHash);
               updates.push(`password_hash=$${params.length}`);
+            }
+
+            // Gender handling: strictly non-modifiable once set
+            const rawBodyGender = body.gender !== undefined && body.gender !== null ? String(body.gender).trim().toUpperCase() : null;
+            const normalizedGender = rawBodyGender ? ((rawBodyGender === 'F' || rawBodyGender === 'FEMME') ? 'F' : (rawBodyGender === 'M' || rawBodyGender === 'HOMME') ? 'M' : null) : null;
+            if (normalizedGender) {
+              if (user.gender && user.gender !== normalizedGender) {
+                return err('Le genre est définitif et ne peut pas être modifié.', 400);
+              }
+              if (!user.gender) {
+                params.push(normalizedGender);
+                updates.push(`gender=$${params.length}`);
+              }
             }
 
             // Handle Commune update with 90-day anti-opportunism locking rule

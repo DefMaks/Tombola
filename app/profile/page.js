@@ -44,6 +44,8 @@ export default function ProfilePage() {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isCommuneModalOpen, setIsCommuneModalOpen] = useState(false);
+  const [isGenderModalOpen, setIsGenderModalOpen] = useState(false);
+  const [genderChoice, setGenderChoice] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [fullNameInput, setFullNameInput] = useState('');
@@ -78,6 +80,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (userProfile?.full_name) {
       setFullNameInput(userProfile.full_name);
+    }
+    if (userProfile?.gender) {
+      setGenderChoice(userProfile.gender);
     }
   }, [userProfile]);
 
@@ -155,6 +160,29 @@ export default function ProfilePage() {
     toast.success('Connexion réussie !');
   };
 
+  // Set Gender Mutation (One-time, non-modifiable)
+  const setGenderMutation = useMutation({
+    mutationFn: async (chosenGender) => {
+      const res = await fetch('/api/my/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: savedPhone,
+          gender: chosenGender,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la définition du genre');
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Genre enregistré définitivement avec succès !');
+      refetchProfile();
+      setIsGenderModalOpen(false);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   // Update Profile Name & Password Mutation
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
@@ -166,21 +194,25 @@ export default function ProfilePage() {
           throw new Error('Les mots de passe ne correspondent pas');
         }
       }
+      const payload = {
+        phone: savedPhone,
+        full_name: fullNameInput,
+        new_password: newPasswordInput || undefined,
+      };
+      if (!userProfile?.gender && genderChoice) {
+        payload.gender = genderChoice;
+      }
       const res = await fetch('/api/my/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: savedPhone,
-          full_name: fullNameInput,
-          new_password: newPasswordInput || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur de mise à jour');
       return data;
     },
     onSuccess: () => {
-      toast.success('Profil et mot de passe mis à jour !');
+      toast.success('Profil mis à jour avec succès !');
       refetchProfile();
       setNewPasswordInput('');
       setConfirmPasswordInput('');
@@ -329,6 +361,63 @@ export default function ProfilePage() {
             lockedUntil={userProfile?.commune_locked_until}
             onCommuneUpdated={() => refetchProfile()}
           />
+        )}
+      </div>
+
+      {/* Genre & Identité (Strictement non modifiable) */}
+      <div className="px-4 pt-3">
+        {userProfile?.gender ? (
+          <div className="p-4 rounded-3xl bg-card border border-amber-500/20 shadow-md flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className={cn(
+                "w-10 h-10 rounded-2xl border flex items-center justify-center font-black text-lg shrink-0",
+                userProfile.gender === 'F'
+                  ? "bg-pink-500/15 text-pink-400 border-pink-500/30"
+                  : "bg-blue-500/15 text-blue-400 border-blue-500/30"
+              )}>
+                {userProfile.gender === 'F' ? '♀' : '♂'}
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                  Genre (Titres officiels)
+                </div>
+                <div className="text-sm font-black text-foreground flex items-center gap-1.5">
+                  <span>{userProfile.gender === 'F' ? 'Femme (Punchée)' : 'Homme (Punché)'}</span>
+                </div>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-amber-500/40 text-amber-400/90 bg-amber-500/10 text-[10px] font-bold flex items-center gap-1 py-1 px-2.5">
+              <Lock className="h-3 w-3 text-amber-400" />
+              Non modifiable
+            </Badge>
+          </div>
+        ) : (
+          <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-500/10 via-card to-card border border-amber-500/40 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <User className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-bold text-amber-400 tracking-wider flex items-center gap-1">
+                  <span>Genre non renseigné</span>
+                  <span className="text-[9px] text-muted-foreground font-normal">(Requis pour vos titres)</span>
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  Précisez votre genre pour adapter vos annonces (Punché / Punchée).
+                </div>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                setGenderChoice('');
+                setIsGenderModalOpen(true);
+              }}
+              className="h-9 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-black text-xs shrink-0 shadow-md shadow-amber-500/20"
+            >
+              Définir mon genre
+            </Button>
+          </div>
         )}
       </div>
 
@@ -498,6 +587,63 @@ export default function ProfilePage() {
               </div>
             ) : null}
 
+            {/* Genre dans le modal profil */}
+            <div className="pt-2 border-t border-border/60">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-1">
+                  <User className="h-3.5 w-3.5 text-amber-400" /> Genre
+                </label>
+                <span className="text-[10px] text-amber-400/90 font-medium flex items-center gap-1">
+                  <Lock className="h-3 w-3" /> Non modifiable
+                </span>
+              </div>
+              {userProfile?.gender ? (
+                <div className="h-12 rounded-xl border border-border bg-muted/40 px-3.5 flex items-center justify-between">
+                  <span className="font-bold text-sm flex items-center gap-2">
+                    <span className={userProfile.gender === 'F' ? 'text-pink-400 font-black' : 'text-blue-400 font-black'}>
+                      {userProfile.gender === 'F' ? '♀ Femme (F)' : '♂ Homme (M)'}
+                    </span>
+                  </span>
+                  <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-400 bg-amber-500/10">
+                    Définitif
+                  </Badge>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setGenderChoice('F')}
+                      className={`h-11 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
+                        genderChoice === 'F'
+                          ? 'bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/40 font-black'
+                          : 'bg-background/80 border-border text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <span className="text-sm font-black">♀</span>
+                      <span>Femme (F)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGenderChoice('M')}
+                      className={`h-11 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
+                        genderChoice === 'M'
+                          ? 'bg-blue-500/20 border-blue-500 text-blue-300 ring-2 ring-blue-500/40 font-black'
+                          : 'bg-background/80 border-border text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <span className="text-sm font-black">♂</span>
+                      <span>Homme (M)</span>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-amber-400/80 flex items-center gap-1">
+                    <Lock className="h-3 w-3 shrink-0" />
+                    Attention : Une fois enregistré, le genre ne pourra plus être modifié.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <Button
               onClick={() => updateProfileMutation.mutate()}
               disabled={
@@ -513,6 +659,68 @@ export default function ProfilePage() {
                 <ShieldCheck className="h-4 w-4 mr-2" />
               )}
               Enregistrer les modifications
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Définir le Genre (une seule fois, non modifiable) */}
+      <Dialog open={isGenderModalOpen} onOpenChange={setIsGenderModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl bg-card border border-amber-500/30 p-6 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black flex items-center gap-2 text-foreground">
+              <User className="h-5 w-5 text-amber-400" /> Définir votre genre
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
+              <Lock className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-bold text-amber-400">Important & Définitif :</span> Votre genre est <strong>strictement non modifiable</strong> après enregistrement. Il personnalise vos titres officiels (Punché ou Punchée).
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setGenderChoice('F')}
+                className={`h-20 rounded-2xl border flex flex-col items-center justify-center gap-1 font-bold text-sm transition-all cursor-pointer ${
+                  genderChoice === 'F'
+                    ? 'bg-pink-500/20 border-pink-500 text-pink-300 ring-2 ring-pink-500/40 shadow-lg font-black scale-[1.02]'
+                    : 'bg-background/80 border-border text-muted-foreground hover:text-foreground hover:border-pink-500/40'
+                }`}
+              >
+                <span className="text-2xl font-black">♀</span>
+                <span>Femme (F)</span>
+                <span className="text-[10px] opacity-75 font-normal">Punchée du jour</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setGenderChoice('M')}
+                className={`h-20 rounded-2xl border flex flex-col items-center justify-center gap-1 font-bold text-sm transition-all cursor-pointer ${
+                  genderChoice === 'M'
+                    ? 'bg-blue-500/20 border-blue-500 text-blue-300 ring-2 ring-blue-500/40 shadow-lg font-black scale-[1.02]'
+                    : 'bg-background/80 border-border text-muted-foreground hover:text-foreground hover:border-blue-500/40'
+                }`}
+              >
+                <span className="text-2xl font-black">♂</span>
+                <span>Homme (M)</span>
+                <span className="text-[10px] opacity-75 font-normal">Punché du jour</span>
+              </button>
+            </div>
+
+            <Button
+              onClick={() => setGenderMutation.mutate(genderChoice)}
+              disabled={setGenderMutation.isPending || !genderChoice}
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 font-black text-slate-950 shadow-lg shadow-amber-500/20 cursor-pointer"
+            >
+              {setGenderMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+              )}
+              Confirmer définitivement
             </Button>
           </div>
         </DialogContent>
