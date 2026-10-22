@@ -57,9 +57,9 @@ function detectDRCOperator(rawInput) {
   if (clean.length >= 2) {
     const p2 = clean.slice(0, 2);
     if (['81', '82', '83'].includes(p2)) return 'MPESA';
-    if (['88', '89', '84', '85'].includes(p2)) return 'ORANGE';
+    if (['80', '84', '85', '88', '89'].includes(p2)) return 'ORANGE';
     if (['97', '98', '99'].includes(p2)) return 'AIRTEL';
-    if (['90'].includes(p2)) return 'AFRICELL';
+    if (['90', '91'].includes(p2)) return 'AFRICELL';
   }
   return null;
 }
@@ -844,56 +844,87 @@ function BuyTicketSheet({ raffle, sold, max, available, open, setOpen, onRequire
           )}
 
           {step === 'ussd' && (
-            <div className="py-6 text-center space-y-6">
-              <div className="relative mx-auto h-24 w-24 rounded-full bg-amber-500/10 border-2 border-amber-500/50 flex items-center justify-center shadow-inner">
-                <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 1.8 }} className="absolute inset-0 rounded-full border-4 border-amber-500/30 animate-ping" />
-                <Phone className="h-10 w-10 text-amber-500 relative z-10" />
+            <div className="py-4 text-center space-y-4 select-none">
+              <div className="relative mx-auto h-16 w-16 rounded-full bg-amber-500/10 border border-amber-500/40 flex items-center justify-center">
+                <motion.div
+                  animate={{ scale: [1, 1.25, 1], opacity: [0.6, 1, 0.6] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="absolute inset-0 rounded-full border-2 border-amber-500/30 animate-ping"
+                />
+                <Phone className="h-7 w-7 text-amber-500 relative z-10" />
               </div>
 
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-bold">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Transaction en cours via TwigaPaie</span>
-                </div>
-                <h3 className="font-black text-xl">Validez sur votre téléphone 📱</h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Un message USSD Push a été envoyé au <b className="text-foreground">{fullPhone}</b>.
-                  Entrez votre code PIN Mobile Money pour confirmer le paiement de{' '}
-                  <b className="text-amber-500">{tx?.amount ? `${tx.amount} ${tx.currency}` : `$${total.toFixed(2)}`}</b>.
+              <div className="space-y-1">
+                <h3 className="font-black text-lg">Confirmez sur votre téléphone 📱</h3>
+                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                  Entrez votre code PIN pour valider le paiement de{' '}
+                  <b className="text-amber-400 font-bold">
+                    {tx?.amount ? `${Number(tx.amount).toLocaleString('fr-FR')} ${tx.currency}` : `$${total.toFixed(2)}`}
+                  </b>.
                 </p>
                 {loggedInPhone && fullPhone !== loggedInPhone && (
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 max-w-xs mx-auto text-center font-medium">
-                    Vos Punches seront réservés sur votre compte : <b>{loggedInPhone}</b>
+                  <p className="text-[11px] text-emerald-400 pt-0.5 font-medium">
+                    Punches réservés pour : <b>{loggedInPhone}</b>
+                  </p>
+                )}
+              </div>
+
+              <div className="p-3 rounded-2xl bg-card border border-border/60 space-y-2 text-left text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Numéro & Réseau</span>
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    {fullPhone} <span className="text-amber-500 font-bold uppercase">• {operator}</span>
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Statut</span>
+                  <span className="font-semibold flex items-center gap-1.5 text-amber-400">
+                    <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+                    En attente du PIN...
+                  </span>
+                </div>
+
+                {operator === 'AIRTEL' && (
+                  <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Le push tarde ?</span>
+                    <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Composez *501#</span>
+                  </div>
+                )}
+                {operator === 'AFRICELL' && (
+                  <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Le push tarde ?</span>
+                    <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Composez *111#</span>
+                  </div>
+                )}
+                {operator === 'ORANGE' && (
+                  <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>Le push tarde ?</span>
+                    <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Composez *144#</span>
                   </div>
                 )}
               </div>
 
-              <div className="p-4 rounded-2xl bg-card border border-border space-y-3 text-left">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-foreground">Opérateur :</span>
-                  <span className="font-bold uppercase text-amber-500">{operator}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-foreground">Référence :</span>
-                  <span className="font-mono text-[11px] font-semibold">{tx?.merchant_reference}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-foreground">Statut :</span>
-                  <span className="font-bold flex items-center gap-1.5 text-amber-500">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    En attente du PIN Mobile Money...
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2 pt-2">
-                <Button onClick={() => pollStatus(tx?.id)} disabled={isCheckingStatus} variant="outline" className="w-full h-12 font-bold border-amber-500/40 text-amber-500 hover:bg-amber-500/10">
-                  {isCheckingStatus ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
-                  Vérifier le statut du paiement
+              <div className="space-y-1.5 pt-1">
+                <Button
+                  onClick={() => pollStatus(tx?.id)}
+                  disabled={isCheckingStatus}
+                  variant="outline"
+                  className="w-full h-11 font-bold border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                >
+                  {isCheckingStatus ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Zap className="h-4 w-4 mr-2" />
+                  )}
+                  J&apos;ai validé mon code PIN
                 </Button>
 
-                <button onClick={reset} className="text-xs text-muted-foreground hover:underline pt-2 block mx-auto">
-                  Annuler ou modifier les informations
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors py-1 block mx-auto"
+                >
+                  Annuler
                 </button>
               </div>
             </div>
